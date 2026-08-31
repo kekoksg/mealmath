@@ -1,0 +1,4 @@
+// Ponto de entrada dos estilos. A ordem importa: @font-face e variaveis antes das classes.
+@use 'styles/fontes';
+@use 'styles/tokens';
+@use 'styles/base';

@@ -1,0 +1,381 @@
+// Variaveis de estilo do projeto, tiradas do prototipo de referencia.
+// Cor, raio, sombra e fonte ficam todas aqui, para nao ter
+// valor solto espalhado pelo SCSS dos componentes.
+
+:root {
+  // Area segura do celular
+  // Serve para o notch e para a barra de gestos. No navegador comum da 0, porque a
+  // propria barra do navegador ja protege as bordas. Com o app instalado, e isso que
+  // impede o menu de baixo de ficar embaixo da barrinha do celular.
+  // O 0px e o valor padrao para navegador que nao conhece o env().
+  --safe-t:  env(safe-area-inset-top, 0px);
+  --safe-b:  env(safe-area-inset-bottom, 0px);
+
+  // Cor: marca
+  // Um verde so. Antes o bloco do topo vinha de um degrade entre --green-l e --green-d
+  // enquanto botao, botao flutuante e pilula ativa eram chapados, entao a tela tinha dois
+  // verdes diferentes fazendo o mesmo papel. O degrade saiu: o que separa as pecas aqui e
+  // a sombra, nao a variacao de tom dentro delas.
+  //
+  // O tom foi fechado em um passo (era #157F4E) porque ele tambem e a cor dos valores em
+  // dinheiro sobre --superficie, e naquele papel precisa de 4,5:1. Como fundo de botao,
+  // o branco em cima subiu junto: 5,29:1.
+  --green:        #147B4C;   // botoes principais, valores em dinheiro, item ativo
+  --green-d:      #0F6B3F;   // so dentro da sombra do verde, nunca como fundo
+  --green-soft:   #E8F3ED;   // fundo de icone e realce leve
+
+  // Cor: texto
+  // Os quatro degraus estao medidos sobre --superficie: 13,3 / 12,1 / 5,2 / 4,5. O piso e
+  // 4,5:1 (WCAG AA para texto abaixo de 18,66px em negrito), o que comprime a distancia
+  // entre --muted e --faint. A hierarquia entre eles fica no tamanho e no peso da fonte.
+  --ink:          #17262E;   // titulos de tela e valores em destaque
+  --text:         #1F2D35;   // corpo de texto
+  --muted:        #5C626F;   // rotulos secundarios e subtitulos
+  --faint:        #686C74;   // legendas minimas, placeholder
+
+  // Cor: superficie
+  --bg:           #EBEEEB;   // fundo da aplicacao, o mesmo tom de --superficie
+  --line:         #EDEDED;   // divisor, trilho de barra e botao de periodo inativo
+  --line-2:       #E5E7EB;   // borda de campo e tracejado
+  --bg-desk:      #DDE2DE;   // fora da coluna, quando a tela e larga
+
+  // Cor: semantica
+  // O --red e o --amber sao usados nos dois papeis, texto e preenchimento, entao os dois
+  // foram fechados ate o piso do papel mais exigente:
+  //   --red   texto sobre --superficie 4,5:1 · branco sobre ele, no botao de apagar, 5,3:1
+  //   --amber so preenche (fatia do grafico, barra da meta, anel do alerta): 3:1 de objeto
+  //           grafico. Como texto ele nao passava nem perto, entao quem escreve e o
+  //           --amber-ink, que fecha 4,5:1 sobre --superficie e sobre --amber-soft.
+  --red:          #B94444;   // acao de apagar e valor acima da meta
+  --amber:        #B47E2F;   // preenchimento: meta perto do limite, anel do alerta
+  --amber-soft:   #FDF3E2;   // fundo do bloco de alerta
+  --amber-ring:   #F7E3BE;   // circulo do icone dentro do alerta
+  --amber-ink:    #8E6325;   // texto de alerta, sobre --amber-soft ou sobre --superficie
+  --amber-forte:  #B7502C;   // porcentagem de alta no alerta de preco
+
+  // Cor: sobreposicao
+  --scrim:         rgba(23,38,46,.45);    // veu atras do painel de baixo
+  --grab:          #D5DAD6;               // alca do painel de baixo
+  // O que fica por cima de uma cor cheia. O --on-cor vale para verde e para vermelho, os
+  // dois unicos fundos cheios do app; os outros dois so existem sobre o verde.
+  //
+  // O branco so aparece aqui. Como superficie ele nao existe mais: cartao, campo, linha de
+  // lista e nav usam --superficie, que e o mesmo tom do fundo.
+  --on-cor:        #FFFFFF;               // texto principal e marcador sobre cor cheia
+  --on-green:      rgba(255,255,255,.92); // texto secundario em cima de fundo verde
+  // Fundo da tag de variacao no topo da tela. Escurece o verde em vez de clarear: com o
+  // veu branco de antes o texto ficava em 3,6:1, porque a tag clareava justamente o fundo
+  // sobre o qual o branco precisa aparecer. Puxando para baixo, sobe para 5,9:1.
+  --on-green-soft: rgba(0,0,0,.16);
+
+  // Cor: controle discreto
+  // Alca e kebab sao controles, entao valem os 3:1 de componente de interface e nao a
+  // regra de texto. Os dois estavam em 1,3 e 1,4 sobre a superficie.
+  --grip:         #86898D;   // alca de arrastar da linha de refeicao
+  --kebab:        #85898E;   // botao de tres pontinhos da linha
+
+  // Cor: categorias de alimento
+  // Sao fatias do grafico e marcadores da legenda, nunca texto: valem os 3:1 de objeto
+  // grafico sobre --superficie. Todas passavam menos o carboidrato, que estava em 1,8 e
+  // praticamente sumia no fundo claro.
+  --cat-prot:     #C4562F;  --cat-prot-soft:  #F9E7DF;
+  --cat-horti:    #147B4C;  --cat-horti-soft: #E8F3ED;
+  --cat-carb:     #B47E2F;  --cat-carb-soft:  #FDF3E2;
+  --cat-lat:      #3E6B8C;  --cat-lat-soft:   #E4EDF3;
+  --cat-outro:    #6B7280;  --cat-outro-soft: #EFF0F1;
+
+  // Relevo dos elementos
+  // O fundo e o cartao usam a mesma cor. Nada aqui e branco em cima de cinza: os
+  // elementos parecem moldados na propria superficie, para fora ou para dentro dela.
+  //
+  // A luz vem do canto de cima a esquerda, por isso toda peca tem duas sombras opostas:
+  // clara em cima a esquerda e escura embaixo a direita. E so isso, sem borda e sem
+  // degrade. O contraste e baixo de proposito, porque quem separa a informacao aqui e o
+  // espacamento e o tamanho da fonte.
+  --superficie:  #EBEEEB;   // o fundo e o cartao usam esse mesmo tom
+  --neu-luz:     #FFFFFF;   // lado que recebe a luz
+  --neu-sombra:  #C9CFC9;   // lado oposto
+
+  // Sombra
+  // O --sh e o relevo padrao, usado em quase tudo.
+  --sh:    -3px -3px 8px var(--neu-luz), 4px 4px 10px var(--neu-sombra);
+  --sh-lg: -5px -5px 14px var(--neu-luz), 7px 7px 18px var(--neu-sombra);
+
+  // O verde e a unica cor que sobe da superficie. A sombra dele puxa para o proprio verde
+  // escuro em vez do cinza, senao o botao parece colado por cima da tela.
+  --sh-verde: -3px -3px 8px var(--neu-luz), 5px 5px 12px rgba(20,123,76,.32);
+  --sh-fab:   -4px -4px 10px var(--neu-luz), 6px 6px 16px rgba(20,123,76,.38);
+
+  // O botao destrutivo e a outra peca de cor cheia. Ele usava a sombra do verde, entao um
+  // botao vermelho projetava um halo verde embaixo.
+  --sh-vermelho: -3px -3px 8px var(--neu-luz), 5px 5px 12px rgba(185,68,68,.32);
+
+  // Afundado: campo, trilho e botao inativo, tudo que recebe alguma coisa em vez de se
+  // destacar. Sao as mesmas duas sombras, so que viradas para dentro.
+  --sh-afundado: inset -2px -2px 5px var(--neu-luz), inset 3px 3px 7px var(--neu-sombra);
+
+  // Pressionado: o elemento em relevo fica afundado enquanto o dedo esta em cima. Vale para
+  // todo controle clicavel, do botao a linha de lista. Encolher com transform: scale() nao
+  // serve, porque afastar a peca do dedo e o contrario de apertar ela.
+  --sh-pressionado: inset -1px -1px 3px var(--neu-luz), inset 3px 3px 6px var(--neu-sombra);
+
+  // As versoes coloridas do pressionado. Sao as mesmas duas sombras viradas para dentro, so
+  // que nos tons da propria cor: o cinza --neu-sombra em cima de verde ou vermelho vira uma
+  // mancha suja.
+  --sh-verde-pressionado:
+    inset -1px -1px 3px rgba(255,255,255,.28),
+    inset 3px 3px 7px rgba(11,80,47,.55);
+  --sh-vermelho-pressionado:
+    inset -1px -1px 3px rgba(255,255,255,.28),
+    inset 3px 3px 7px rgba(150,38,38,.5);
+
+  --sh-desk:      0 24px 60px rgba(23,38,46,.22);  // sombra da coluna em tela larga
+
+  // Raio
+  // Uma escala de 4 em 4, mais o "totalmente redondo". Antes eram treze valores soltos
+  // (3, 6, 8, 10, 11, 12, 14, 16, 20, 24, 28) e nenhuma peca sabia dizer por que tinha o
+  // canto que tinha: o quadradinho da marca era 11px, o do icone da informacao 10px e o
+  // bloco do valor ao vivo 14px, todos "quase" iguais ao raio do lado. Agora sao sete
+  // degraus e cada componente aponta para um deles pelo papel que exerce.
+  --r-0:           4px;
+  --r-1:           8px;
+  --r-2:          12px;
+  --r-3:          16px;
+  --r-4:          20px;
+  --r-5:          24px;
+  --r-6:          28px;
+  // Acompanha a altura da peca em vez de fixar um valor. Serve para o que e pilula de
+  // verdade: trilho, tag e alca, que mudam de altura conforme o conteudo.
+  --r-full:      999px;
+
+  --r-card:  var(--r-3);    // cartoes e linhas de lista
+  --r-ctl:   var(--r-2);    // botoes, campos e tags
+  --r-sheet: var(--r-5);    // topo do painel de baixo
+  --r-pill:  var(--r-2);    // botao do seletor de periodo: e um controle como os outros
+  --r-live:  var(--r-3);    // bloco do valor que recalcula: e um cartao dentro do painel
+  --r-grab:  var(--r-full); // alca do painel de baixo
+  --r-chip:  var(--r-full); // tag de variacao no topo da tela
+  --r-track: var(--r-full); // barra de progresso e barra de composicao
+  --r-dot:   var(--r-0);    // quadradinho de cor da legenda
+
+  // Espacamento
+  --gap-page:     20px;   // margem lateral da tela inteira
+  --gap-card:     18px;   // espaco interno do cartao
+  --gap-stack:    14px;   // espaco vertical entre os cartoes
+  --gap-row:      12px;   // espaco entre as linhas da lista
+
+  // Tipografia
+  --font:         'Plus Jakarta Sans', system-ui, sans-serif;
+
+  // escala: tamanho / peso
+  --t-title:      27px;  --w-title:    800;  // os titulos de tela, tipo "Visao Geral"
+  --t-hero:       40px;  --w-hero:     800;  // valor grande em dinheiro do topo
+  --t-hero-sm:    34px;                      // valor grande secundario (custo do dia)
+  --t-section:  14.5px;  --w-section:  700;  // titulo dentro do cartao
+  --t-item:     15.5px;  --w-item:     700;  // nome da refeicao na lista
+  --t-body:     14.5px;  --w-body:     500;  // texto corrente
+  --t-sub:        14px;                      // subtitulo da tela
+  --t-legenda:  13.5px;                      // rodape do topo e legenda do grafico
+  --t-meta:      12.5px;                     // "4 itens", legendas
+  --t-micro:       11px;                     // "/ refeicao" e rotulo do menu
+
+  --ls-tight:   -.02em;  // titulos e valores grandes
+  --ls-caps:     .09em;  // rotulo em maiusculo do topo
+
+  --w-medium:      600;  // rotulo do menu e legenda em destaque
+  --lh-body:       1.5;  // altura da linha do texto corrido
+
+  // Escala de espacamento
+  // Sao os valores do prototipo. Sempre usar um desses antes de inventar outro.
+  --sp-05:         2px;
+  --sp-075:        3px;
+  --sp-1:          4px;
+  --sp-2:          6px;
+  --sp-2h:         8px;
+  --sp-3:          9px;
+  --sp-3h:        10px;
+  --sp-4:         12px;
+  --sp-5:         16px;
+  --sp-6:         24px;
+
+  // Estrutura da aplicacao
+  --app-max:     430px;  // largura da coluna. Acima disso a tela fica centralizada
+  --pad-head-t:   22px;  // espaco acima do titulo da tela
+  --nav-clear:   110px;  // espaco no fim da rolagem, para o menu nao cobrir o conteudo
+  --r-desk:  var(--r-6);  // canto arredondado da coluna quando ela descola do fundo
+
+  // Foco do teclado
+  // O anel e desenhado por fora do elemento, em cima do fundo claro da pagina. Por isso a
+  // cor --ink funciona tanto no botao branco quanto no verde, sem precisar de uma variavel
+  // para cada fundo.
+  --bd-focus:      2px;  // espessura do anel
+  --off-focus:     2px;  // distancia entre o anel e o elemento
+
+  // Menu inferior
+  --r-nav:   var(--r-4);  // arredondamento do topo
+  --sh-nav:       0 -6px 16px rgba(23,38,46,.06);
+  --nav-pad-b:    22px;  // base do menu. A area segura do celular soma nesse valor
+  --nav-pad:      12px 4px var(--nav-pad-b);  // topo, lados e base
+  --t-nav-em:     20px;  // icone
+  --t-nav:      11.5px;  // rotulo
+  --sz-dot:        4px;  // pontinho do item ativo
+  --hairline:      1px;  // ajuste fino de 1px em borda e alinhamento
+
+  // Painel de baixo
+  // Tempo do painel voltar para o lugar quando o arraste nao chega no limite de fechar.
+  // E curto porque e so uma correcao e nao uma animacao de entrada.
+  --tr-sheet-volta: .22s;
+  // Tempo da descida ate sumir, quando o arraste passa do limite. E um pouco maior que o
+  // da volta porque percorre o resto da altura do painel e nao so alguns pixels.
+  --tr-sheet-saida: .26s;
+
+  // Transicao entre as telas do menu
+  // Tempo e curva da transicao suave ao trocar de tela pelo menu de baixo. Sao duas
+  // variaveis separadas porque o animation-duration e o animation-timing-function nao
+  // aceitam o atalho de "tempo curva" que o transition aceita.
+  --tr-rota-dur:    .25s;
+  --tr-rota-ease:   cubic-bezier(.4, 0, .2, 1);
+
+  // Botao flutuante
+  --fab-size:     56px;
+  --fab-bottom:  112px;  // acima do menu
+  --t-fab:        27px;
+  // O sinal de "+" dessa fonte nao desce abaixo da linha de base, entao centralizar a
+  // caixa de texto deixa o traco visivelmente baixo dentro do circulo. Esse padding so
+  // embaixo puxa a area de centralizacao para cima ate o simbolo ficar no meio.
+  --fab-nudge-b:   8px;
+
+  // Botoes
+  --t-btn:      14.5px;  --w-btn:  700;
+  --pad-btn:      14px;
+  --bd-btn:      1.5px;  // borda do botao que so tem contorno
+
+  // Campos
+  // Os 16px nao sao escolha de design: abaixo disso o Safari do iPhone da zoom ao focar o
+  // campo e a tela inteira pula. Vale para todo input, select e textarea.
+  --t-field:      16px;
+  --pad-field:  15px 16px;
+  --bd-invalid:  1.5px;  // contorno do campo que nao passou na validacao
+  --gap-field:    10px;  // espaco entre dois campos na mesma linha
+  --ic-inset:     46px;  // recuo do texto quando o campo tem icone do lado
+  --t-ic:         15px;  // tamanho do icone dentro do campo
+
+  // Linha de lista
+  // A linha do mercado e a da refeicao sao a mesma peca em telas diferentes, entao o
+  // respiro de dentro delas e um valor so. Antes uma tinha 14px em cima e a outra 15px,
+  // diferenca que ninguem escolheu e que so aparece quando as duas telas ficam lado a lado.
+  --pad-row: var(--gap-stack) var(--sp-5);
+  --sz-avatar:    40px;  // circulo do icone na linha do mercado
+  --t-avatar:     19px;  // icone dentro do circulo
+
+  // Seletores de periodo
+  --tr-ctl:      .16s;   // tempo da troca de periodo e do realce do controle
+
+  // Bloco de valor do topo
+  --t-hero-lbl:  11.5px;  // rotulo em maiusculo acima do valor
+  --ls-hero:     -.03em;  // espacamento do valor grande em dinheiro
+  --lh-hero:       1.05;
+  --sz-hero-dot:    6px;  // pontinho antes do "N de M dias"
+
+  // Dashboard: atalho de perfil no cabecalho
+  --sz-head-perfil: 40px;  // circulo do avatar no canto superior direito
+  --t-head-perfil:  18px;  // emoji dentro do circulo
+
+  // Convite de instalacao
+  --sz-instalar-marca: 42px;  // quadradinho verde com o M
+  --t-instalar-marca:  20px;
+  --r-instalar-marca:  var(--r-2);
+
+  // Dashboard: progresso da meta
+  --h-track:       10px;  // altura da barra de progresso
+  --t-prog:        19px;  // gasto acumulado acima da barra
+  --t-prog-teto:   15px;  // o "/ R$ 250,00" do lado. E so referencia, entao fica menor
+  --tr-track:      .5s cubic-bezier(.4, 0, .2, 1);  // barra crescendo ao trocar de periodo
+
+  // Dashboard: troca de periodo
+  --op-periodo-atualizando: .55;  // opacidade do painel enquanto busca a nova janela
+  --tr-periodo-entrada:      .2s;  // esmaecer ao comecar a buscar
+  --tr-periodo-saida:        .2s;  // voltar ao normal quando a resposta chega
+  --tr-periodo-atraso:      .12s;  // resposta mais rapida que isto nunca chega a esmaecer
+
+  // Dashboard: alerta de variacao de preco
+  --sz-alert-em:   36px;  // circulo do emoji do alerta
+  --t-alert-em:    16px;
+
+  // Dashboard: composicao por categoria
+  --h-stack:       12px;  // altura da barra empilhada
+  --sz-lg-dot:     10px;  // quadrado de cor da legenda
+  --sz-lg-pct:     36px;  // coluna do percentual: alinha os numeros a direita
+
+  // Faixa de semana e de dias (diario)
+  --pad-week-x:    22px;  // recuo maior que a coluna: o chevron tem padding proprio
+  --t-chevron:     20px;  // ‹ ›
+  --t-day-n:       18px;  // numero do dia na coluna
+  --sz-day-dot:     5px;  // marcador de dia com registro
+  --gap-day-dot:    5px;  // vao entre o numero do dia e o marcador
+  --lh-day:         1.1;
+
+  // Calendario completo (diario)
+  --sz-cal-day:    40px;  // altura minima da celula do dia na grade do mes
+  --t-cal-n:       15px;  // numero do dia na grade do mes
+
+  // Linha de refeicao (biblioteca)
+  --sz-meal-em:   42px;  // circulo do icone da refeicao
+  --t-meal-em:    20px;  // emoji dentro do circulo
+  --t-meal-u:   11.5px;  // o texto "/ refeicao" da linha
+  --t-grip:       13px;  // alca ⣿
+  --ls-grip:       1px;
+  --t-kebab:      18px;  // ⋮
+  --op-drag:       .35;  // linha enquanto esta sendo arrastada
+
+  // Escolha de icone
+  --cols-icon:       6;  // colunas da grade de emoji
+  --gap-icon:      8px;
+  --t-icon:       20px;
+
+  // Quantidade editavel na linha do diario
+  --sz-qi:        74px;  // largura do campo embutido na legenda (cabe a fonte de 16px)
+  --r-qi:     var(--r-1);
+  --pad-qi:    5px 7px;
+  --t-qi:         16px;  // mesmo motivo de --t-field: evita o zoom do iOS ao focar
+
+  // Composicao da refeicao (dentro do sheet)
+  --t-rm:         17px;  // ✕ que remove um item do rascunho
+  --sz-pick-em:   38px;  // circulo do item de mercado na escolha
+  --t-pick-em:    18px;
+  --t-add:        22px;  // "+" da linha de escolha
+
+  // Perfil
+  --pad-prof:   26px var(--gap-page) 18px;  // bloco de identidade, acima dos cartoes
+  --sz-prof-av:   74px;  // circulo do avatar
+  --t-prof-av:    34px;  // emoji dentro do avatar
+  --t-prof-nome:  21px;  // nome da pessoa. Menor que o --t-title porque e um dado e nao um titulo
+  --pad-stats: 18px 6px;  // cartao de numeros: respiro vertical, colunas quase coladas
+  --t-stat-n:     20px;  // numero do indicador
+  --gap-info:     13px;  // icone → texto na linha de informacao
+  --sz-info-em:   38px;  // quadrado do icone
+  --r-info-em: var(--r-2);  // canto do quadrado: nao e circulo porque nao e avatar de item
+  --t-info-em:    18px;
+  --t-info-v:     15px;  // valor da linha de informacao
+  --pad-logout:   17px;  // botao de sair da conta
+
+  // Bottom sheet
+  --h-sheet:       90%;  // teto de altura: o fundo continua visivel
+  --sz-grab-w:    38px;
+  --sz-grab-h:     4px;
+  --t-sheet-t:    19px;  // titulo do sheet
+  --t-sheet-x:    20px;  // botao de fechar
+  --t-live:       22px;  // valor recalculado ao vivo
+
+  // Empilhamento
+  --z-faixa:        10;  // faixa de instalacao, acima do conteudo que rola sob ela
+  --z-nav:          15;
+  --z-fab:          20;
+  --z-scrim:        30;
+
+  // Estado vazio
+  --t-empty-em:   40px;
+  --t-empty-t:    16px;
+  --t-empty-p:  13.5px;
+  --pad-empty: 38px 24px;
+}

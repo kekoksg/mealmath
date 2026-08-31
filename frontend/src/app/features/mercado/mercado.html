@@ -1,0 +1,186 @@
+<header class="head">
+  <h1 class="title">Mercado</h1>
+  <p class="subtitle">Preços que alimentam os cálculos</p>
+</header>
+
+@if (!carregando() && !erro() && itens().length) {
+  <div class="search">
+    <app-icone class="ic" nome="buscar" />
+    <input
+      id="busca"
+      type="search"
+      [value]="busca()"
+      (input)="aoBuscar($event)"
+      placeholder="Buscar item..."
+      aria-label="Buscar item de mercado"
+    />
+  </div>
+}
+
+@if (carregando()) {
+  <section class="card">
+    <p class="carregando" role="status">Carregando itens de mercado…</p>
+  </section>
+} @else if (erro(); as falha) {
+  <section class="card">
+    <div class="empty">
+      <app-icone class="em" nome="sem-rede" />
+      <h4>Não deu para carregar</h4>
+      <p role="alert">{{ falha }}</p>
+      <button class="btn-out" type="button" (click)="carregar()">Tentar de novo</button>
+    </div>
+  </section>
+} @else if (!itens().length) {
+  <section class="card">
+    <div class="empty">
+      <app-icone class="em" nome="mercado" />
+      <h4>Nenhum item de mercado</h4>
+      <p>
+        Cadastre um produto com o preço e a quantidade da embalagem. É daí que sai o custo de cada
+        porção das suas refeições.
+      </p>
+      <button class="btn-out" type="button" (click)="abrirNovo()">Cadastrar item</button>
+    </div>
+  </section>
+} @else if (!filtrados().length) {
+  <section class="card">
+    <div class="empty">
+      <app-icone class="em" nome="buscar" />
+      <h4>Nada encontrado</h4>
+      <p>Nenhum item cadastrado combina com “{{ busca() }}”.</p>
+      <button class="btn-out" type="button" (click)="limparBusca()">Limpar busca</button>
+    </div>
+  </section>
+} @else {
+  <ul class="lista">
+    @for (item of filtrados(); track item.id) {
+      @let referenciaDoItem = referencia(item);
+      <li>
+        <button class="mkt" type="button" (click)="abrirEdicao(item)">
+          <app-icone class="em" [attr.data-cat]="item.categoria" [nome]="icone(item.categoria)" />
+          <span class="bd">
+            <span class="t">{{ item.nome }}</span>
+            <span class="s">{{ item.preco | moeda }} · {{ embalagem(item) }}</span>
+          </span>
+          <span class="v">
+            <span class="p">{{ referenciaDoItem.valor | moeda }} {{ referenciaDoItem.rotulo }}</span>
+            <span class="u">custo unitário</span>
+          </span>
+        </button>
+      </li>
+    }
+  </ul>
+
+  <p class="foot-note">{{ resumo() }}</p>
+}
+
+<div class="fab-area">
+  <button class="fab" type="button" aria-label="Cadastrar item de mercado" (click)="abrirNovo()">
+    +
+  </button>
+</div>
+
+@if (sheetAberta()) {
+  <app-bottom-sheet [titulo]="emEdicao() ? 'Editar item' : 'Novo item'" (fechar)="fecharSheet()">
+    <form [formGroup]="form" (ngSubmit)="salvar()">
+      <div class="fld" [class.invalido]="invalido('nome')">
+        <label for="item-nome">Nome do item</label>
+        <input
+          id="item-nome"
+          type="text"
+          formControlName="nome"
+          placeholder="Ex.: Peito de frango"
+          autocomplete="off"
+          [attr.aria-invalid]="invalido('nome')"
+        />
+        @if (mensagem('nome'); as aviso) {
+          <p class="erro-campo">{{ aviso }}</p>
+        }
+      </div>
+
+      <div class="two">
+        <div class="fld" [class.invalido]="invalido('preco')">
+          <label for="item-preco">Preço pago (R$)</label>
+          <input
+            id="item-preco"
+            type="number"
+            inputmode="decimal"
+            step="any"
+            min="0"
+            formControlName="preco"
+            placeholder="0,00"
+            [attr.aria-invalid]="invalido('preco')"
+          />
+          @if (mensagem('preco'); as aviso) {
+            <p class="erro-campo">{{ aviso }}</p>
+          }
+        </div>
+
+        <div class="fld">
+          <label for="item-categoria">Categoria</label>
+          <select id="item-categoria" formControlName="categoria">
+            @for (categoria of categorias; track categoria.valor) {
+              <option [value]="categoria.valor">{{ categoria.rotulo }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="fld" [class.invalido]="invalido('quantidadeEmbalagem')">
+          <label for="item-quantidade">Quantidade</label>
+          <input
+            id="item-quantidade"
+            type="number"
+            inputmode="decimal"
+            step="any"
+            min="0"
+            formControlName="quantidadeEmbalagem"
+            placeholder="1"
+            [attr.aria-invalid]="invalido('quantidadeEmbalagem')"
+          />
+          @if (mensagem('quantidadeEmbalagem'); as aviso) {
+            <p class="erro-campo">{{ aviso }}</p>
+          }
+        </div>
+
+        <div class="fld">
+          <label for="item-unidade">Unidade</label>
+          <select id="item-unidade" formControlName="unidade">
+            @for (unidade of unidades; track unidade.valor) {
+              <option [value]="unidade.valor">{{ unidade.rotulo }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Recalcula a cada tecla, para o usuario ver o efeito do preco antes de salvar. -->
+      <div class="live">
+        <span class="k">Custo unitário</span>
+        <span class="v" aria-live="polite">
+          @if (previa(); as calculo) {
+            {{ calculo.valor | moeda }} {{ calculo.rotulo }}
+          } @else {
+            —
+          }
+        </span>
+      </div>
+
+      @if (historicoTexto(); as historico) {
+        <p class="hist">Histórico de preço: {{ historico }}</p>
+      }
+
+      @if (erroForm(); as falha) {
+        <p class="erro-form" role="alert">{{ falha }}</p>
+      }
+
+      <button class="btn" type="submit" [disabled]="salvando()">
+        @if (salvando()) {
+          Salvando…
+        } @else {
+          {{ emEdicao() ? 'Salvar e recalcular' : 'Cadastrar item' }}
+        }
+      </button>
+    </form>
+  </app-bottom-sheet>
+}

@@ -1,0 +1,84 @@
+// Segue a classe .mkt do prototipo de referencia.
+// As classes .search, .carregando e .fab sao compartilhadas e ficam no styles/_base.scss.
+
+.lista {
+  list-style: none;
+}
+
+.mkt {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  width: calc(100% - var(--gap-page) * 2);
+  margin: 0 var(--gap-page) var(--gap-row);
+  padding: var(--pad-row);
+  border: 0;
+  background: var(--superficie);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    box-shadow: var(--sh-pressionado);
+  }
+
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-avatar);
+    height: var(--sz-avatar);
+    border-radius: 50%;
+    font-size: var(--t-avatar);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-body);
+    font-weight: var(--w-section);
+    color: var(--ink);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-body);
+    color: var(--muted);
+    margin-top: var(--hairline);
+  }
+
+  .v {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .p {
+    display: block;
+    font-size: var(--t-body);
+    font-weight: var(--w-title);
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  .u {
+    display: block;
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    color: var(--faint);
+  }
+}
+
+// Historico de precos do item, mostrado no painel de edicao.
+.hist {
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  color: var(--muted);
+  margin-bottom: var(--gap-stack);
+}

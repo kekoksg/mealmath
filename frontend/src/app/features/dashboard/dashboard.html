@@ -1,0 +1,282 @@
+<header class="head head-perfil">
+  <div>
+    <p class="greet">{{ saudacao() }}</p>
+    <h1 class="title">Visão Geral</h1>
+  </div>
+
+  <!-- O perfil nao fica no menu de baixo porque e ajuste de conta e nao tarefa do dia.
+       O icone e so decoracao, entao o nome do destino fica no aria-label. -->
+  <a class="perfil" routerLink="/perfil" aria-label="Abrir perfil">
+    <app-icone nome="perfil" />
+  </a>
+</header>
+
+<!-- group com aria-pressed em vez de tablist. Esses botoes nao trocam entre paineis
+     que ja existem, eles refazem o conteudo de baixo. Anunciados como aba, o leitor de
+     tela prometeria navegacao por setas, que um filtro nao tem. -->
+<div class="pills" role="group" aria-label="Período consolidado">
+  @for (opcao of periodos; track opcao.valor) {
+    <button
+      type="button"
+      class="pill"
+      [class.on]="periodo() === opcao.valor"
+      [attr.aria-pressed]="periodo() === opcao.valor"
+      (click)="trocarPeriodo(opcao.valor)"
+    >
+      {{ opcao.rotulo }}
+    </button>
+  }
+</div>
+
+@if (carregando() && !dados()) {
+  <section class="card">
+    <p class="carregando" role="status">Consolidando o período…</p>
+  </section>
+} @else if (!dados() && erro(); as falha) {
+  <section class="card">
+    <div class="empty">
+      <app-icone class="em" nome="sem-rede" />
+      <h4>Não deu para carregar</h4>
+      <p role="alert">{{ falha }}</p>
+      <button class="btn-out" type="button" (click)="carregar()">Tentar de novo</button>
+    </div>
+  </section>
+} @else if (dados(); as painel) {
+<!-- Essa div envolve tudo que depende do periodo. Ao trocar de botao a estrutura continua
+     montada e so os valores mudam, e a classe .atualizando deixa o conteudo mais apagado em
+     vez de esconder enquanto a nova janela e buscada. -->
+<div class="periodo-conteudo" [class.atualizando]="carregando()">
+  <!-- Custo total do periodo. O valor vem do Diario, porque a biblioteca e so modelo. -->
+  <section class="hero">
+    <p class="lbl">Custo total — {{ rotuloDoPeriodo() }}</p>
+    <p class="val">{{ painel.custoTotal | moeda }}</p>
+
+    <!-- Some quando o periodo anterior nao teve custo, porque sem base nao existe variacao. -->
+    @if (variacao(); as delta) {
+      <p class="chip" [class.alta]="delta.alta">
+        <span aria-hidden="true">{{ delta.seta }}</span> {{ delta.texto }}
+      </p>
+    }
+
+    <div class="foot">
+      <span class="l">{{ painel.custoMedioPorDia | moeda }} /dia</span>
+      <!-- Some inteiro no período de um dia: sem texto, o marcador sozinho vira sujeira. -->
+      @if (completude(); as dias) {
+        <span class="r">
+          <span class="d" aria-hidden="true"></span>
+          {{ dias }}
+        </span>
+      }
+    </div>
+  </section>
+
+  @if (avisoSemPreco(); as aviso) {
+    <p class="aviso-total" role="status"><app-icone nome="aviso" /> {{ aviso }}</p>
+  }
+
+  <!-- Meta de orcamento (RF010). Sem meta definida nao mostro progresso de R$ 0,00 e sim um
+       convite para definir. -->
+  <section class="card">
+    @if (painel.meta; as meta) {
+      <div class="card-t">
+        <app-icone class="em" nome="meta" />
+        <h3>Meta de orçamento</h3>
+        <button class="link" type="button" (click)="abrirMeta()">editar</button>
+      </div>
+
+      <!-- O gasto e o limite ficam na mesma linha, um do lado do outro, para o usuario ler
+           "quanto de quanto" de uma vez so, sem varrer o cartao inteiro. -->
+      <p class="prog-row">
+        <span class="a">{{ painel.custoTotal | moeda }}</span>
+        <span class="b">/ {{ meta.valorNoPeriodo | moeda }}</span>
+      </p>
+
+      <div
+        class="track"
+        role="progressbar"
+        aria-label="Gasto do período em relação à meta"
+        [attr.aria-valuenow]="larguraDaMeta()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <span [class]="faixaDaMeta()" [style.width.%]="larguraDaMeta()"></span>
+      </div>
+
+      <p class="prog-cap">
+        @if (metaEstourada()) {
+          <app-icone nome="aviso" />
+        }
+        {{ legendaDaMeta() }}
+      </p>
+
+    } @else {
+      <div class="card-t">
+        <app-icone class="em" nome="meta" />
+        <h3>Meta de orçamento</h3>
+      </div>
+      <p class="prog-nota espaco">
+        Defina um limite de gasto e acompanhe quanto do orçamento já foi consumido no período.
+      </p>
+      <button class="btn-out" type="button" (click)="abrirMeta()">Definir meta</button>
+    }
+  </section>
+
+  @if (painel.custoTotal === 0) {
+    <!-- Periodo sem custo nenhum. Um dia registrado so com itens sem preco tambem cai aqui,
+         e nesse caso o caminho e a tela de Mercado e nao a de Diario. -->
+    <section class="card">
+      <div class="empty">
+        @if (painel.itensSemPreco.length) {
+          <app-icone class="em" nome="sem-preco" />
+          <h4>Nenhum custo apurado</h4>
+          <p>
+            Há consumo registrado no período, mas os itens ainda não têm preço vinculado. Cadastre o
+            preço no Mercado para que o custo apareça aqui.
+          </p>
+          <a class="btn-out" routerLink="/mercado">Ir para o mercado</a>
+        } @else {
+          <app-icone class="em" nome="sem-registro" />
+          <h4>Sem registros no período</h4>
+          <p>
+            Registre o que você comeu no Diário. É de lá que sai o custo consolidado desta tela.
+          </p>
+          <a class="btn-out" routerLink="/diario">Ir para o diário</a>
+        }
+      </div>
+    </section>
+  } @else {
+    <!-- Grafico de onde vai o dinheiro. As fatias fecham 100% porque item sem preco nao
+         entra em nenhuma delas. -->
+    @if (painel.composicaoPorCategoria.length) {
+      <section class="card">
+        <div class="card-t">
+          <app-icone class="em" nome="composicao" />
+          <h3>Onde vai o dinheiro</h3>
+        </div>
+
+        <div class="stack" aria-hidden="true">
+          @for (fatia of painel.composicaoPorCategoria; track fatia.categoria) {
+            <span [attr.data-cat-forte]="fatia.categoria" [style.width.%]="fatia.percentual"></span>
+          }
+        </div>
+
+        <ul class="legenda">
+          @for (fatia of painel.composicaoPorCategoria; track fatia.categoria) {
+            <li class="lg">
+              <span class="d" [attr.data-cat-forte]="fatia.categoria" aria-hidden="true"></span>
+              <span class="n">{{ fatia.rotulo }}</span>
+              <span class="a">{{ fatia.custo | moeda }}</span>
+              <span class="p">{{ percentual(fatia.percentual) }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- Mostra o custo acumulado no periodo. Um item barato consumido todo dia passa um caro
+         consumido uma vez so, e e justamente isso que essa tela serve para mostrar. -->
+    @if (painel.itensMaiorImpacto.length) {
+      <section class="card">
+        <div class="card-t">
+          <app-icone class="em" nome="impacto" />
+          <h3>Itens de maior impacto</h3>
+          <span class="side">no período</span>
+        </div>
+
+        <ul class="linhas">
+          @for (item of painel.itensMaiorImpacto; track item.itemMercadoId) {
+            <li class="row">
+              <app-icone class="em" [attr.data-cat]="item.categoria" [nome]="icone(item)" />
+              <span class="bd">
+                <span class="t">{{ item.nome }}</span>
+                <span class="s">{{ percentual(item.percentual) }} do total</span>
+              </span>
+              <span class="v">{{ item.custo | moeda }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+
+  <!-- Fica fora do @if de periodo vazio de proposito, porque esse alerta responde "o que
+       subiu desde a ultima compra" e nao e filtrado pela janela. -->
+  @if (painel.altasDePreco.length) {
+    <section class="card">
+      <div class="card-t">
+        <app-icone class="em" nome="alerta" />
+        <h3>Alertas de variação</h3>
+        <span class="side">desde a última compra</span>
+      </div>
+
+      <ul class="alertas">
+        @for (alta of painel.altasDePreco; track alta.itemMercadoId) {
+          <li class="alert">
+            <app-icone class="em" nome="alta" />
+            <span class="bd">
+              <span class="t">{{ alta.nome }}</span>
+              <span class="s">{{ transicao(alta) }}</span>
+            </span>
+            <span class="v">+{{ percentual(alta.variacaoPercentual) }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>
+
+  <!-- A troca de periodo falhou, mas o painel anterior continua na tela. E um erro pontual,
+       nao um estado vazio novo. -->
+  @if (erro(); as falha) {
+    <p class="erro-total" role="alert">{{ falha }}</p>
+  }
+}
+
+@if (sheetAberta()) {
+  <app-bottom-sheet titulo="Meta de orçamento" (fechar)="fecharMeta()">
+    <form [formGroup]="formMeta" (ngSubmit)="salvarMeta()">
+      <div class="fld" [class.invalido]="invalidoValor()">
+        <label for="meta-valor">Valor-limite (R$)</label>
+        <input
+          id="meta-valor"
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          formControlName="valor"
+          placeholder="Ex.: 450,00"
+          [attr.aria-invalid]="invalidoValor()"
+        />
+        @if (mensagemValor(); as aviso) {
+          <p class="erro-campo">{{ aviso }}</p>
+        }
+      </div>
+
+      <div class="fld">
+        <label for="meta-periodo">Período</label>
+        <select id="meta-periodo" formControlName="periodo">
+          @for (opcao of periodosMeta; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
+        </select>
+      </div>
+
+      <p class="prog-nota espaco">
+        A meta é rateada pela duração do período consultado: um limite mensal visto na aba Semana
+        vale a fração equivalente a 7 dias.
+      </p>
+
+      @if (erroForm(); as falha) {
+        <p class="erro-form" role="alert">{{ falha }}</p>
+      }
+
+      <button class="btn" type="submit" [disabled]="salvando()">
+        @if (salvando()) {
+          Salvando…
+        } @else {
+          Salvar meta
+        }
+      </button>
+    </form>
+  </app-bottom-sheet>
+}

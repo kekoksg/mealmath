@@ -1,0 +1,36 @@
+@if (visivel()) {
+  <section class="instalar">
+    <div class="topo">
+      <span class="marca" aria-hidden="true">M</span>
+      <div class="bd">
+        <p class="t">Use o MealMath como app</p>
+        <p class="s">
+          @if (ehIos()) {
+            Pelo ícone na tela de início, ele abre em tela cheia — sem a barra do navegador.
+          } @else {
+            Pelo ícone na tela de início, ele abre em tela cheia e carrega na hora.
+          }
+        </p>
+      </div>
+      <button class="x" type="button" aria-label="Dispensar convite de instalação" (click)="dispensar()">
+        <app-icone nome="fechar" />
+      </button>
+    </div>
+
+    @if (ehIos()) {
+      <!-- O iPhone nao tem API de instalacao, entao so da para ensinar o caminho. -->
+      <p class="passos">
+        Toque em <b>Compartilhar</b> na barra do Safari e escolha
+        <b>Adicionar à Tela de Início</b>.
+      </p>
+    } @else {
+      <button class="btn" type="button" [disabled]="instalando()" (click)="instalar()">
+        @if (instalando()) {
+          Instalando…
+        } @else {
+          Instalar
+        }
+      </button>
+    }
+  </section>
+}

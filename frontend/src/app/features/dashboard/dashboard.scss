@@ -1,0 +1,420 @@
+// Segue as classes .pills, .chip, .prog-row, .track, .alert, .stack, .lg e .row do
+// prototipo de referencia.
+// As classes .hero, .card, .empty e .carregando sao compartilhadas e ficam no _base.scss.
+
+// A .head sozinha empilha a saudacao e o titulo. Aqui o avatar entra a direita, na mesma
+// linha. O align-items: center centraliza o circulo em relacao as duas linhas de texto, e
+// nao so na primeira. Alinhando pelo topo ele ficaria colado na saudacao.
+.head-perfil {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-row);
+}
+
+.perfil {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--sz-head-perfil);
+  height: var(--sz-head-perfil);
+  border-radius: 50%;
+  background: var(--superficie);
+  box-shadow: var(--sh);
+  font-size: var(--t-head-perfil);
+  line-height: 1;
+  text-decoration: none;
+  // Sem isso o SVG herdaria o azul de link padrao do navegador.
+  color: var(--ink);
+
+  &:active {
+    box-shadow: var(--sh-pressionado);
+  }
+
+  &:focus-visible {
+    outline: var(--sp-1) solid var(--green-soft);
+    box-shadow: var(--sh), 0 0 0 var(--bd-focus) var(--green);
+  }
+}
+
+// Ao trocar de periodo a estrutura inteira (topo, meta, composicao, itens e alertas)
+// continua montada. Ela so fica mais apagada enquanto a nova janela e buscada, em vez de
+// sumir e voltar. Quem da a sensacao de "esta mudando" e a classe .atualizando e nao um
+// carregando por cima.
+//
+// O transition-delay so existe na entrada, no &.atualizando. Em uma rede boa a resposta
+// chega bem antes disso, a classe sai antes do atraso terminar e o apagar nem comeca. Sem
+// esse atraso, cada troca daria uma piscada de apagar e voltar. Na saida vale a regra sem
+// atraso, entao a volta ao normal e sempre imediata.
+.periodo-conteudo {
+  transition: opacity var(--tr-periodo-saida) ease;
+
+  &.atualizando {
+    transition: opacity var(--tr-periodo-entrada) ease var(--tr-periodo-atraso);
+    opacity: var(--op-periodo-atualizando);
+  }
+}
+
+// Sao tres botoes iguais. O ativo fica verde cheio, porque e ele que define tudo que a tela
+// mostra.
+.pills {
+  display: flex;
+  gap: var(--sp-3h);
+  padding: 0 var(--gap-page) var(--sp-5);
+}
+
+.pill {
+  flex: 1;
+  // O inativo fica afundado na superficie e o ativo em relevo. A diferenca e de altura e
+  // nao so de cor, entao da para ver qual esta selecionado mesmo sem enxergar o verde.
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--superficie);
+  box-shadow: var(--sh-afundado);
+  padding: var(--sp-4) 0;
+  font-family: inherit;
+  font-size: var(--t-sub);
+  font-weight: var(--w-medium);
+  color: var(--muted);
+  cursor: pointer;
+  transition: var(--tr-ctl);
+
+  &.on {
+    background: var(--green);
+    box-shadow: var(--sh-verde);
+    color: var(--on-cor);
+
+    &:active {
+      box-shadow: var(--sh-verde-pressionado);
+    }
+  }
+
+  // O inativo ja e uma cavidade. Apertar ele so aprofunda o sulco.
+  &:active {
+    box-shadow: var(--sh-afundado);
+  }
+}
+
+// Tag de variacao contra o periodo anterior, dentro do bloco de valor do topo.
+.hero {
+  .chip {
+    display: inline-block;
+    border-radius: var(--r-chip);
+    background: var(--on-green-soft);
+    padding: var(--sp-1) var(--sp-3h);
+    font-size: var(--t-meta);
+    font-weight: var(--w-btn);
+    margin-top: var(--sp-2h);
+  }
+
+  // Gastou mais que no periodo anterior. A queda e o estavel ficam na tag escurecida do
+  // proprio verde; a alta sai do verde e assume a cor de alerta que o resto do app ja usa,
+  // porque aqui subir e a informacao ruim.
+  .chip.alta {
+    background: var(--amber-soft);
+    color: var(--amber-ink);
+  }
+
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-row);
+    margin-top: var(--sp-3h);
+    font-size: var(--t-legenda);
+    color: var(--on-green);
+  }
+
+  .l {
+    font-weight: var(--w-body);
+  }
+
+  .r {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-weight: var(--w-medium);
+    text-align: right;
+  }
+
+  .d {
+    flex-shrink: 0;
+    width: var(--sz-hero-dot);
+    height: var(--sz-hero-dot);
+    border-radius: 50%;
+    background: var(--on-green);
+  }
+}
+
+// Fica amarelo quando nada quebrou e o total so esta incompleto, e vermelho quando a troca
+// de periodo falhou e o que esta na tela ficou desatualizado.
+.aviso-total,
+.erro-total {
+  margin: 0 var(--gap-page) var(--gap-stack);
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+}
+
+.aviso-total {
+  // O --amber puro e preenchimento; como texto ele fica em 1,8:1 sobre a superficie.
+  color: var(--amber-ink);
+}
+
+.erro-total {
+  color: var(--red);
+}
+
+// O gasto e o limite ficam grudados e nao nas duas pontas do cartao. "R$ 160,20 / R$ 250,00"
+// e uma informacao so e precisa ser lida de uma vez. Separados, o olho tinha que atravessar
+// o cartao inteiro para descobrir de quanto era a meta.
+.prog-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+
+  .a {
+    font-size: var(--t-prog);
+    font-weight: var(--w-title);
+    color: var(--ink);
+  }
+
+  // Fica um pouco menor que o gasto, porque e so a referencia e nao o numero que a pessoa
+  // veio conferir.
+  .b {
+    font-size: var(--t-prog-teto);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+  }
+}
+
+.track {
+  height: var(--h-track);
+  border-radius: var(--r-track);
+  // E um sulco cavado na superficie, e a barra cresce dentro dele.
+  background: var(--superficie);
+  box-shadow: var(--sh-afundado);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: var(--r-track);
+    transition: width var(--tr-track);
+  }
+
+  // As tres situacoes: dentro da meta, apertado e estourado. O vermelho fica so para o
+  // estouro, porque o amarelo ja avisa antes de virar problema.
+  .ok {
+    background: var(--green);
+  }
+
+  .risco {
+    background: var(--amber);
+  }
+
+  .acima {
+    background: var(--red);
+  }
+}
+
+.prog-cap {
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  color: var(--muted);
+  margin-top: var(--sp-3);
+}
+
+// Explica o rateio da meta e convida a definir uma. E texto corrido e nao legenda de numero.
+.prog-nota {
+  font-size: var(--t-meta);
+  font-weight: var(--w-body);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  margin-top: var(--sp-2);
+
+  &.espaco {
+    margin-top: 0;
+    margin-bottom: var(--gap-stack);
+  }
+}
+
+// Botao discreto no canto do cabecalho do cartao. Ele ocupa o lugar do .side e por isso usa
+// o mesmo tom apagado, ja que quem importa no cartao e a barra e nao esse botao.
+.link {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  color: var(--green);
+  cursor: pointer;
+}
+
+// E uma barra so, dividida na proporcao do gasto. A comparacao entre as categorias e feita
+// pelo tamanho da fatia, e a legenda embaixo traz o numero exato.
+.stack {
+  display: flex;
+  height: var(--h-stack);
+  border-radius: var(--r-track);
+  box-shadow: var(--sh-afundado);
+  overflow: hidden;
+  margin-bottom: var(--sp-5);
+
+  span {
+    height: 100%;
+  }
+}
+
+.legenda,
+.linhas,
+.alertas {
+  list-style: none;
+}
+
+.lg {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3h);
+  padding: var(--sp-2h) 0;
+
+  .d {
+    flex-shrink: 0;
+    width: var(--sz-lg-dot);
+    height: var(--sz-lg-dot);
+    border-radius: var(--r-dot);
+  }
+
+  .n {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--t-legenda);
+    font-weight: var(--w-medium);
+    color: var(--text);
+  }
+
+  .a {
+    font-size: var(--t-legenda);
+    font-weight: var(--w-title);
+    color: var(--ink);
+  }
+
+  // Largura fixa, senao as porcentagens ficam desalinhadas de uma linha para a outra.
+  .p {
+    width: var(--sz-lg-pct);
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--faint);
+    text-align: right;
+  }
+}
+
+// Linha do ranking de itens que mais pesaram no periodo.
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  padding: var(--sp-4) 0;
+  border-bottom: var(--hairline) solid var(--line);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-avatar);
+    height: var(--sz-avatar);
+    border-radius: 50%;
+    font-size: var(--t-avatar);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-body);
+    font-weight: var(--w-section);
+    color: var(--text);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-body);
+    color: var(--muted);
+    margin-top: var(--hairline);
+  }
+
+  .v {
+    flex-shrink: 0;
+    font-size: var(--t-body);
+    font-weight: var(--w-title);
+    color: var(--green);
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+// Bloco amarelo dentro do cartao. E um aviso de atencao e nao de erro.
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  border-radius: var(--r-ctl);
+  background: var(--amber-soft);
+  padding: var(--sp-4) var(--gap-stack);
+  margin-bottom: var(--sp-3);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-alert-em);
+    height: var(--sz-alert-em);
+    border-radius: 50%;
+    background: var(--amber-ring);
+    font-size: var(--t-alert-em);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-sub);
+    font-weight: var(--w-section);
+    color: var(--ink);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--amber-ink);
+    margin-top: var(--hairline);
+  }
+
+  .v {
+    flex-shrink: 0;
+    font-size: var(--t-body);
+    font-weight: var(--w-title);
+    color: var(--amber-forte);
+    white-space: nowrap;
+  }
+}

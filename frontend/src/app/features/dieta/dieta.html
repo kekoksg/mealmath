@@ -1,0 +1,675 @@
+<header class="head">
+  <h1 class="title">{{ titulo }}</h1>
+  <p class="subtitle">{{ subtitulo }}</p>
+</header>
+
+@if (aba === 'biblioteca') {
+  <div>
+  @if (!carregando() && !erro() && refeicoes().length) {
+    <div class="search">
+      <app-icone class="ic" nome="buscar" />
+      <input
+        type="search"
+        [value]="busca()"
+        (input)="aoBuscar($event)"
+        placeholder="Buscar refeição..."
+        aria-label="Buscar refeição salva"
+      />
+    </div>
+  }
+
+  @if (carregando()) {
+    <section class="card">
+      <p class="carregando" role="status">Carregando suas refeições…</p>
+    </section>
+  } @else if (erro(); as falha) {
+    <section class="card">
+      <div class="empty">
+        <app-icone class="em" nome="sem-rede" />
+        <h4>Não deu para carregar</h4>
+        <p role="alert">{{ falha }}</p>
+        <button class="btn-out" type="button" (click)="carregar()">Tentar de novo</button>
+      </div>
+    </section>
+  } @else if (!refeicoes().length) {
+    <section class="card">
+      <div class="empty">
+        <app-icone class="em" nome="sem-registro" />
+        <h4>Nenhuma refeição cadastrada</h4>
+        <p>
+          Monte um modelo com os itens que você já cadastrou no mercado. O custo da porção sai
+          pronto e o modelo fica disponível para registrar no diário.
+        </p>
+        <button class="btn-out" type="button" (click)="abrirNovo()">Criar refeição</button>
+      </div>
+    </section>
+  } @else if (!filtradas().length) {
+    <section class="card">
+      <div class="empty">
+        <app-icone class="em" nome="buscar" />
+        <h4>Nenhuma refeição encontrada</h4>
+        <p>Nenhuma refeição salva combina com “{{ busca() }}”.</p>
+        <button class="btn-out" type="button" (click)="limparBusca()">Limpar busca</button>
+      </div>
+    </section>
+  } @else {
+    <ul class="lista">
+      @for (refeicao of filtradas(); track refeicao.id) {
+        <li
+          class="meal"
+          [class.drag]="arrastando() === refeicao.id"
+          [attr.draggable]="podeReordenar()"
+          (dragstart)="iniciarArrasto(refeicao.id, $event)"
+          (dragover)="sobrepor(refeicao.id, $event)"
+          (dragend)="encerrarArrasto()"
+        >
+          @if (podeReordenar()) {
+            <button
+              class="grip"
+              type="button"
+              [attr.aria-label]="'Reordenar ' + refeicao.titulo + ': use as setas para cima e para baixo'"
+              (keydown.arrowup)="moverPorTeclado(refeicao.id, -1, $event)"
+              (keydown.arrowdown)="moverPorTeclado(refeicao.id, 1, $event)"
+            >
+              <app-icone nome="arrastar" />
+            </button>
+          }
+
+          <app-icone class="em" [nome]="refeicao.icone ?? 'ref-almoco'" />
+
+          <span class="bd">
+            <span class="t">{{ refeicao.titulo }}</span>
+            <span class="s">{{ contagem(refeicao.itens.length) }}</span>
+          </span>
+
+          <span class="v">
+            <span class="p">{{ refeicao.custoTotal | moeda }}</span>
+            <span class="u">/ refeição</span>
+          </span>
+
+          <button
+            class="kb"
+            type="button"
+            [attr.aria-label]="'Opções de ' + refeicao.titulo"
+            (click)="abrirMenu(refeicao)"
+          >
+            <app-icone nome="opcoes" />
+          </button>
+        </li>
+      }
+    </ul>
+
+    <p class="foot-note">{{ resumo() }}</p>
+  }
+  </div>
+} @else {
+  <div>
+    <div class="weeknav">
+      <button type="button" aria-label="Semana anterior" (click)="mudarSemana(-1)"><app-icone nome="anterior" /></button>
+      <button
+        class="rng"
+        type="button"
+        aria-live="polite"
+        [attr.aria-label]="'Abrir calendário — semana de ' + intervaloDaSemana()"
+        (click)="abrirCalendario()"
+      >
+        {{ intervaloDaSemana() }}
+      </button>
+      <button type="button" aria-label="Próxima semana" (click)="mudarSemana(1)"><app-icone nome="proximo" /></button>
+    </div>
+
+    <!-- O pontinho verde marca o dia que tem registro e a coluna verde marca o dia selecionado. -->
+    <div class="days" role="group" aria-label="Dias da semana">
+      @for (dia of dias(); track dia.chave) {
+        <button
+          class="day"
+          type="button"
+          [class.on]="dia.chave === diaSelecionado()"
+          [attr.aria-pressed]="dia.chave === diaSelecionado()"
+          [attr.aria-label]="rotuloDoDia(dia)"
+          (click)="selecionarDia(dia.chave)"
+        >
+          <span class="dw" aria-hidden="true">{{ dia.semana }}</span>
+          <span class="nm" aria-hidden="true">{{ dia.numero }}</span>
+          <span class="dt" [class.off]="!dia.temRegistro" aria-hidden="true"></span>
+        </button>
+      }
+    </div>
+
+    @if (carregandoDiario()) {
+      <section class="card">
+        <p class="carregando" role="status">Carregando o diário…</p>
+      </section>
+    } @else if (erroDiario(); as falha) {
+      <section class="card">
+        <div class="empty">
+          <app-icone class="em" nome="sem-rede" />
+          <h4>Não deu para carregar</h4>
+          <p role="alert">{{ falha }}</p>
+          <button class="btn-out" type="button" (click)="carregarSemana()">Tentar de novo</button>
+        </div>
+      </section>
+    } @else if (registrosDoDia().length) {
+      <section class="hero dia">
+        <p class="lbl">Custo do dia</p>
+        <p class="val">{{ custoDoDia() | moeda }}</p>
+      </section>
+
+      @if (semPrecoNoDia().length) {
+        <p class="aviso-dia" role="status">
+          Fora do total: {{ semPrecoNoDia().join(', ') }}. Sem preço vinculado, o custo desses itens
+          não entra na conta — confira-os no Mercado.
+        </p>
+      }
+
+      <ul class="lista">
+        @for (registro of registrosDoDia(); track registro.id) {
+          <li class="meal" [class.sem-custo]="registro.itensSemPreco.length">
+            <button class="linha" type="button" (click)="abrirRegistro(registro)">
+              <app-icone class="em" [nome]="registro.icone ?? 'ref-almoco'" />
+              <span class="bd">
+                <span class="t">{{ registro.titulo }}</span>
+                <span class="s">
+                  {{ contagem(registro.itens.length) }}
+                  @if (registro.itensSemPreco.length) {
+                    · {{ registro.itensSemPreco.length }} sem preço
+                  }
+                </span>
+              </span>
+              <span class="v">
+                <span class="p">{{ registro.custoTotal | moeda }}</span>
+              </span>
+            </button>
+
+            <button
+              class="kb"
+              type="button"
+              [attr.aria-label]="'Opções de ' + registro.titulo + ' neste dia'"
+              (click)="abrirMenuDoRegistro(registro)"
+            >
+              <app-icone nome="opcoes" />
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <section class="card">
+        <div class="empty">
+          <app-icone class="em" nome="sem-registro" />
+          <h4>Nenhuma refeição registrada</h4>
+          <p>
+            Nada anotado em {{ diaCurto() }}. Registre o que você comeu para este dia entrar no
+            custo do período.
+          </p>
+          <button class="btn-out" type="button" (click)="abrirAdicionarAoDia()">
+            Adicionar refeição
+          </button>
+        </div>
+      </section>
+
+      @if (podeRepetirDiaAnterior()) {
+        <button
+          class="btn-soft solto"
+          type="button"
+          [disabled]="repetindo()"
+          (click)="repetirDiaAnterior()"
+        >
+          @if (repetindo()) {
+            Copiando…
+          } @else {
+            <!-- O icone vem do Solar como todos os outros. Antes era o glifo ↺ escrito
+                 direto no texto, com o peso e o desenho da fonte em vez do do conjunto. -->
+            <app-icone nome="repetir" />&nbsp; Repetir refeições de {{ diaAnteriorCurto() }}
+          }
+        </button>
+      }
+    }
+
+    <!-- Erro do botao de repetir o dia anterior. As outras acoes mostram o erro no painel. -->
+    @if (!etapa()) {
+      @if (erroAcao(); as falha) {
+        <p class="erro-dia" role="alert">{{ falha }}</p>
+      }
+    }
+  </div>
+}
+
+<div class="fab-area">
+  <button
+    class="fab"
+    type="button"
+    [attr.aria-label]="aba === 'biblioteca' ? 'Criar refeição' : 'Registrar refeição no dia'"
+    (click)="aoTocarNoFab()"
+  >
+    +
+  </button>
+</div>
+
+@if (etapa(); as passo) {
+  <app-bottom-sheet [titulo]="tituloSheet()" (fechar)="aoFechar()">
+    @switch (passo) {
+      @case ('formulario') {
+        <form [formGroup]="form" (ngSubmit)="salvar()">
+          <div class="fld">
+            <label id="rotulo-icone">Ícone</label>
+            <div class="icons" role="radiogroup" aria-labelledby="rotulo-icone">
+              @for (opcao of icones; track opcao) {
+                <button
+                  type="button"
+                  role="radio"
+                  [class.on]="icone() === opcao"
+                  [attr.aria-checked]="icone() === opcao"
+                  [attr.aria-label]="'Ícone ' + rotuloDoIcone(opcao)"
+                  (click)="escolherIcone(opcao)"
+                >
+                  <app-icone [nome]="opcao" />
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="fld" [class.invalido]="invalidoTitulo()">
+            <label for="refeicao-titulo">Título</label>
+            <input
+              id="refeicao-titulo"
+              type="text"
+              formControlName="titulo"
+              placeholder="Ex.: Café da manhã"
+              autocomplete="off"
+              [attr.aria-invalid]="invalidoTitulo()"
+            />
+            @if (mensagemTitulo(); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <div class="fld">
+            <label>Itens da refeição</label>
+
+            @for (item of composicao(); track $index) {
+              <div class="ai" [class.sem-custo]="item.custo === null">
+                <span class="bd">
+                  <span class="t">{{ item.nome }}</span>
+                  <span class="s">
+                    {{ medida(item.quantidadeConsumida, item.unidade) }} ·
+                    @if (item.custo !== null) {
+                      {{ item.custo | moeda }}
+                    } @else {
+                      custo indisponível
+                    }
+                  </span>
+                </span>
+                <button
+                  class="rm"
+                  type="button"
+                  [attr.aria-label]="'Remover ' + item.nome"
+                  (click)="removerItem($index)"
+                >
+                  <app-icone nome="fechar" />
+                </button>
+              </div>
+            } @empty {
+              <p class="note">
+                Nenhum item ainda. A refeição precisa de pelo menos um para ter custo.
+              </p>
+            }
+          </div>
+
+          <button class="btn-soft espaco" type="button" (click)="abrirEscolhaDeItem()">
+            +&nbsp; Adicionar item do mercado
+          </button>
+
+          <!-- Recalcula a cada item adicionado ou removido. -->
+          <div class="live">
+            <span class="k">Custo da refeição</span>
+            <span class="v" aria-live="polite">
+              @if (composicao().length) {
+                {{ custoRascunho() | moeda }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+
+          @if (temItemSemCusto()) {
+            <p class="note aviso" role="status">
+              Um item ficou de fora do total porque o custo dele não pôde ser calculado. Confira o
+              item no Mercado antes de confiar neste valor.
+            </p>
+          }
+
+          @if (erroForm(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <button class="btn" type="submit" [disabled]="salvando()">
+            @if (salvando()) {
+              Salvando…
+            } @else {
+              {{ emEdicao() ? 'Salvar alterações' : 'Criar refeição' }}
+            }
+          </button>
+        </form>
+      }
+
+      @case ('escolher-item') {
+        @if (carregandoMercado()) {
+          <p class="carregando" role="status">Carregando itens de mercado…</p>
+        } @else if (erroMercado(); as falha) {
+          <div class="empty">
+            <app-icone class="em" nome="sem-rede" />
+            <h4>Não deu para carregar</h4>
+            <p role="alert">{{ falha }}</p>
+            <button class="btn-out" type="button" (click)="carregarMercado()">
+              Tentar de novo
+            </button>
+          </div>
+        } @else if (!itensMercado().length) {
+          <div class="empty">
+            <app-icone class="em" nome="mercado" />
+            <h4>Nenhum item de mercado</h4>
+            <p>
+              O custo da refeição vem do preço da embalagem. Cadastre um item no Mercado e volte
+              para montar a refeição.
+            </p>
+            <!-- Esse link sai da tela e descarta o rascunho, mas sem item de mercado nao tem
+                 rascunho para perder: a refeicao em edicao esta vazia de qualquer jeito. -->
+            <a class="btn-out" routerLink="/mercado">Ir para o mercado</a>
+          </div>
+        } @else {
+          <div class="search embutida">
+            <app-icone class="ic" nome="buscar" />
+            <input
+              type="search"
+              [value]="buscaItem()"
+              (input)="aoBuscarItem($event)"
+              placeholder="Buscar item do mercado..."
+              aria-label="Buscar item do mercado"
+            />
+          </div>
+
+          @if (!itensMercadoFiltrados().length) {
+            <div class="empty">
+              <app-icone class="em" nome="buscar" />
+              <h4>Nenhum item encontrado</h4>
+              <p>Nenhum item do mercado combina com “{{ buscaItem() }}”.</p>
+              <button class="btn-out" type="button" (click)="limparBuscaItem()">
+                Limpar busca
+              </button>
+            </div>
+          } @else {
+            @for (item of itensMercadoFiltrados(); track item.id) {
+              <button class="pick" type="button" (click)="escolherItem(item)">
+                <app-icone class="em" [attr.data-cat]="item.categoria" [nome]="iconeDoItem(item)" />
+                <span class="bd">
+                  <span class="t">{{ item.nome }}</span>
+                  <span class="s">
+                    {{ item.preco | moeda }} · {{ medida(item.quantidadeEmbalagem, item.unidade) }}
+                  </span>
+                </span>
+                <span class="add" aria-hidden="true">+</span>
+              </button>
+            }
+          }
+        }
+      }
+
+      @case ('quantidade') {
+        <form [formGroup]="formItem" (ngSubmit)="adicionarItem()">
+          <div class="fld" [class.invalido]="mensagemQuantidade() !== null">
+            <label for="item-quantidade">Quantidade consumida</label>
+            <div class="two">
+              <input
+                id="item-quantidade"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                min="0"
+                formControlName="quantidadeConsumida"
+                placeholder="100"
+              />
+              <select formControlName="unidade" aria-label="Unidade da quantidade consumida">
+                @for (unidade of unidadesDoAlvo(); track unidade.valor) {
+                  <option [value]="unidade.valor">{{ unidade.rotulo }}</option>
+                }
+              </select>
+            </div>
+            @if (mensagemQuantidade(); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <!-- So ofereco unidades da mesma grandeza, entao a conversao sempre da certo. -->
+          <div class="live">
+            <span class="k">Custo desta porção</span>
+            <span class="v" aria-live="polite">
+              @if (previaItem(); as custo) {
+                {{ custo | moeda }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+
+          <button class="btn" type="submit">Adicionar à refeição</button>
+        </form>
+      }
+
+      @case ('menu') {
+        <button class="btn-soft espaco" type="button" (click)="editarDoMenu()">
+          <app-icone nome="editar" />&nbsp; Editar refeição
+        </button>
+        <button class="btn-soft destrutivo" type="button" (click)="confirmarExclusao()">
+          <app-icone nome="excluir" />&nbsp; Excluir refeição
+        </button>
+      }
+
+      @case ('excluir') {
+        <p class="note">
+          Excluir “{{ alvoMenu()?.titulo }}” tira o modelo salvo. Os dias já registrados no
+          diário continuam intactos: eles guardam cópia própria dos itens.
+        </p>
+
+        @if (erroForm(); as falha) {
+          <p class="erro-form" role="alert">{{ falha }}</p>
+        }
+
+        <button class="btn destrutivo espaco" type="button" [disabled]="excluindo()" (click)="excluir()">
+          @if (excluindo()) {
+            Excluindo…
+          } @else {
+            Excluir refeição
+          }
+        </button>
+        <button class="btn-out" type="button" (click)="fecharSheet()">Cancelar</button>
+      }
+
+      @case ('adicionar-ao-dia') {
+        @if (!refeicoes().length) {
+          <div class="empty">
+            <app-icone class="em" nome="sem-registro" />
+            <h4>Nenhuma refeição cadastrada</h4>
+            <p>
+              O diário parte dos modelos salvos. Crie uma refeição e ela aparece aqui para ser
+              registrada no dia.
+            </p>
+            <!-- Navegar destroi essa instancia do componente, entao o painel fecha junto e
+                 nao tem estado nenhum para desfazer antes de sair. -->
+            <a class="btn-out" routerLink="/refeicoes">Ir para Refeições</a>
+          </div>
+        } @else {
+          <p class="note">
+            A refeição entra em <b>{{ diaCurto() }}</b> como cópia: ajustar o que foi comido neste
+            dia não altera o modelo.
+          </p>
+
+          @if (erroAcao(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <div class="search embutida">
+            <app-icone class="ic" nome="buscar" />
+            <input
+              type="search"
+              [value]="buscaRefeicaoDia()"
+              (input)="aoBuscarRefeicaoDia($event)"
+              placeholder="Buscar refeição..."
+              aria-label="Buscar refeição para registrar no dia"
+            />
+          </div>
+
+          @if (!refeicoesFiltradasDoDia().length) {
+            <div class="empty">
+              <app-icone class="em" nome="buscar" />
+              <h4>Nenhuma refeição encontrada</h4>
+              <p>Nenhuma refeição salva combina com “{{ buscaRefeicaoDia() }}”.</p>
+              <button class="btn-out" type="button" (click)="limparBuscaRefeicaoDia()">
+                Limpar busca
+              </button>
+            </div>
+          } @else {
+            @for (refeicao of refeicoesFiltradasDoDia(); track refeicao.id) {
+              <button
+                class="pick"
+                type="button"
+                [disabled]="registrando()"
+                (click)="registrarNoDia(refeicao)"
+              >
+                <app-icone class="em verde" [nome]="refeicao.icone ?? 'ref-almoco'" />
+                <span class="bd">
+                  <span class="t">{{ refeicao.titulo }}</span>
+                  <span class="s">
+                    {{ refeicao.custoTotal | moeda }} · {{ contagem(refeicao.itens.length) }}
+                  </span>
+                </span>
+                <span class="add" aria-hidden="true">+</span>
+              </button>
+            }
+          }
+        }
+      }
+
+      @case ('menu-registro') {
+        <button class="btn-soft espaco" type="button" (click)="editarRegistroDoMenu()">
+          <app-icone nome="editar" />&nbsp; Editar refeição
+        </button>
+        <button class="btn-soft destrutivo" type="button" (click)="removerRegistroDoMenu()">
+          <app-icone nome="excluir" />&nbsp; Remover do dia
+        </button>
+      }
+
+      @case ('registro') {
+        @if (alvoRegistro(); as registro) {
+          <p class="note">
+            Ajustes valem só para <b>{{ diaCurto() }}</b>. O modelo salvo em Refeições e os outros
+            dias não mudam.
+          </p>
+
+          @for (item of registro.itens; track item.id) {
+            <div class="ai" [class.sem-custo]="item.custo === null">
+              <span class="bd">
+                <span class="t">{{ item.nome }}</span>
+                <span class="s">
+                  <input
+                    class="qi"
+                    type="number"
+                    inputmode="decimal"
+                    step="any"
+                    min="0"
+                    [value]="item.quantidadeConsumida"
+                    [disabled]="ajustandoItem() === item.id"
+                    [attr.aria-label]="'Quantidade de ' + item.nome + ' neste dia'"
+                    (change)="ajustarQuantidade(item, $event)"
+                  />
+                  {{ unidadeDe(item.unidade) }} ·
+                  @if (item.custo !== null) {
+                    {{ item.custo | moeda }}
+                  } @else {
+                    sem preço
+                  }
+                </span>
+              </span>
+            </div>
+          }
+
+          @if (erroAjuste(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <!-- Quem recalcula a cada ajuste e o backend. Aqui so mostro o que ele devolveu. -->
+          <div class="live">
+            <span class="k">Custo neste dia</span>
+            <span class="v" aria-live="polite">{{ registro.custoTotal | moeda }}</span>
+          </div>
+
+          @if (registro.itensSemPreco.length) {
+            <p class="note aviso" role="status">
+              {{ registro.itensSemPreco.join(', ') }} ficou de fora do total por não ter preço
+              vinculado. O valor acima é menor que o custo real desta refeição.
+            </p>
+          }
+
+          <button class="btn" type="button" (click)="fecharSheet()">Concluir</button>
+        }
+      }
+
+      @case ('remover-do-dia') {
+        <p class="note">
+          Remover “{{ alvoRegistro()?.titulo }}” tira essa refeição de {{ diaCurto() }} e do custo
+          do período. O modelo continua em Refeições.
+        </p>
+
+        @if (erroAcao(); as falha) {
+          <p class="erro-form" role="alert">{{ falha }}</p>
+        }
+
+        <button
+          class="btn destrutivo espaco"
+          type="button"
+          [disabled]="removendo()"
+          (click)="removerDoDia()"
+        >
+          @if (removendo()) {
+            Removendo…
+          } @else {
+            Remover do dia
+          }
+        </button>
+        <button class="btn-out" type="button" (click)="fecharSheet()">Cancelar</button>
+      }
+
+      @case ('calendario') {
+        <div class="cal-nav">
+          <button type="button" aria-label="Mês anterior" (click)="mudarMesCalendario(-1)"><app-icone nome="anterior" /></button>
+          <span>{{ mesCalendarioRotulo() }}</span>
+          <button type="button" aria-label="Próximo mês" (click)="mudarMesCalendario(1)"><app-icone nome="proximo" /></button>
+        </div>
+
+        <div class="cal-dow" aria-hidden="true">
+          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        </div>
+
+        <div class="cal-grid" role="group" [attr.aria-label]="'Dias de ' + mesCalendarioRotulo()">
+          @for (dia of diasCalendario(); track dia.chave) {
+            <button
+              class="cal-dia"
+              type="button"
+              [class.fora]="!dia.noMes"
+              [class.hoje]="dia.chave === diaDeHoje"
+              [class.on]="dia.chave === diaSelecionado()"
+              [attr.aria-current]="dia.chave === diaDeHoje ? 'date' : null"
+              [attr.aria-pressed]="dia.chave === diaSelecionado()"
+              [attr.aria-label]="rotuloDataCalendario(dia.chave, dia.temRegistro)"
+              (click)="selecionarDataNoCalendario(dia.chave)"
+            >
+              <span class="nm" aria-hidden="true">{{ dia.numero }}</span>
+              <span class="dt" [class.off]="!dia.temRegistro" aria-hidden="true"></span>
+            </button>
+          }
+        </div>
+
+        <button class="btn-out" type="button" (click)="irParaHojeNoCalendario()">Ir para hoje</button>
+      }
+    }
+  </app-bottom-sheet>
+}

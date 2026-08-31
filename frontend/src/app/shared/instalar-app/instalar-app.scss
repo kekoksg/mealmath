@@ -1,0 +1,89 @@
+// Faixa no topo do app, fora da area que rola, porque e um convite sobre o app inteiro e nao
+// conteudo de uma tela. Por isso ela atravessa a coluna de ponta a ponta em vez de ser um
+// cartao com margem, que pareceria mais um item da tela de baixo.
+//
+// O botao de fechar fica sempre visivel, porque isso e um convite e nao um obstaculo.
+.instalar {
+  position: relative;
+  z-index: var(--z-faixa);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-row);
+  // Como essa faixa passou a ser o elemento mais alto da coluna, e ela que encosta no notch.
+  padding: calc(var(--gap-card) + var(--safe-t)) var(--gap-page) var(--gap-card);
+  background: var(--superficie);
+  // Separa a faixa do conteudo: o traco fecha ela embaixo e a sombra coloca ela por cima do
+  // que rola por baixo. So a sombra, com 6% de opacidade, ficaria fraca demais no fundo claro.
+  border-bottom: var(--hairline) solid var(--line-2);
+  box-shadow: var(--sh);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+}
+
+// Miniatura do icone do app, com o mesmo verde e o mesmo "M" do icone de verdade, para o
+// convite se parecer com o que vai aparecer na tela de inicio do celular.
+.marca {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--sz-instalar-marca);
+  height: var(--sz-instalar-marca);
+  border-radius: var(--r-instalar-marca);
+  background: var(--green);
+  color: var(--on-cor);
+  font-size: var(--t-instalar-marca);
+  font-weight: var(--w-title);
+  line-height: 1;
+}
+
+.bd {
+  flex: 1;
+  min-width: 0;
+}
+
+.t {
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+  color: var(--ink);
+}
+
+.s {
+  font-size: var(--t-meta);
+  font-weight: var(--w-body);
+  color: var(--muted);
+  line-height: var(--lh-body);
+}
+
+.x {
+  flex-shrink: 0;
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  line-height: 1;
+  color: var(--kebab);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: var(--bd-focus) solid var(--ink);
+    outline-offset: var(--off-focus);
+  }
+}
+
+// No iPhone a faixa so ensina o caminho, porque nao existe API de instalacao para chamar.
+.passos {
+  font-size: var(--t-meta);
+  font-weight: var(--w-body);
+  color: var(--text);
+  line-height: var(--lh-body);
+
+  b {
+    font-weight: var(--w-btn);
+    color: var(--ink);
+  }
+}

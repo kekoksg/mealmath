@@ -1,0 +1,145 @@
+// Segue as classes .scrim e .sheet do prototipo de referencia. La o veu cobria so a moldura do
+// celular desenhada na pagina, aqui ele cobre a tela toda e o painel se alinha com a coluna
+// do app.
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--scrim);
+  animation: veu .2s;
+  transition: opacity var(--tr-sheet-saida) ease;
+
+  // O veu apaga junto com a descida do painel. Sem isso o fundo escuro ficaria sozinho na
+  // tela no ultimo instante, e a saida pareceria dois movimentos separados.
+  &.saindo {
+    opacity: 0;
+  }
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--app-max);
+  max-height: var(--h-sheet);
+  // O painel encosta na base da tela. Sem a area segura, o ultimo botao ficaria embaixo da
+  // barrinha do celular quando o app esta instalado.
+  padding-bottom: calc(var(--gap-page) + var(--safe-b));
+  background: var(--bg);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  animation: sobe .28s cubic-bezier(.4, 0, .2, 1);
+  // Volta para o lugar quando o arraste nao chega no limite de fechar.
+  transition: transform var(--tr-sheet-volta) cubic-bezier(.4, 0, .2, 1);
+
+  // Durante o arraste o painel acompanha o dedo, entao uma transicao aqui viraria atraso.
+  &.arrastando {
+    transition: none;
+  }
+}
+
+// Quem comanda a saida e o veu e o painel acompanha. Sair percorre o resto da altura, bem
+// mais que os poucos pixels da volta, entao usa um tempo proprio.
+.scrim.saindo .sheet {
+  transition-duration: var(--tr-sheet-saida);
+}
+
+// A area que responde ao arraste e a alca mais o cabecalho. O corpo fica de fora porque e
+// ele que rola, e as duas coisas disputariam o mesmo gesto.
+.puxador {
+  flex-shrink: 0;
+  // O gesto e tratado pelo componente. Sem isso o navegador tenta rolar a pagina junto e o
+  // painel treme.
+  touch-action: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// Em tela larga a coluna descola do fundo, entao o painel para na mesma linha em que ela
+// termina. Senao ele ficaria pendurado abaixo do fim visivel do app.
+@media (min-width: 480px) {
+  .scrim {
+    padding-bottom: var(--gap-page);
+  }
+}
+
+.grab {
+  width: var(--sz-grab-w);
+  height: var(--sz-grab-h);
+  border-radius: var(--r-grab);
+  background: var(--grab);
+  margin: var(--sp-3) auto var(--sp-1);
+}
+
+.sh-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-row);
+  padding: var(--sp-4) var(--gap-page) var(--gap-stack);
+
+  h3 {
+    font-size: var(--t-sheet-t);
+    font-weight: var(--w-title);
+    color: var(--ink);
+    letter-spacing: var(--ls-tight);
+  }
+
+  button {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--t-sheet-x);
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
+}
+
+.sh-b {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--gap-page) var(--sp-4);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes veu {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sobe {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+// Para quem configurou o sistema com menos animacao, o painel sobe direto, sem animar.
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+
+  .sheet {
+    transition: none;
+  }
+}

@@ -1,0 +1,66 @@
+// Segue a classe .nav do prototipo de referencia.
+.nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  padding: var(--nav-pad);
+  // Com o app instalado nao tem a barra do navegador embaixo. Sem isso os rotulos ficariam
+  // embaixo da barrinha do iPhone e da barra de gestos do Android.
+  padding-bottom: calc(var(--nav-pad-b) + var(--safe-b));
+  background: var(--superficie);
+  border-radius: var(--r-nav) var(--r-nav) 0 0;
+  // A sombra sobe por baixo, entao a barra parece pousada em cima do conteudo e nao pintada
+  // nele.
+  box-shadow: var(--sh-nav);
+
+  // Dou um nome para a transicao de rota tratar o menu como o mesmo elemento de uma tela
+  // para a outra, em vez de desenhar ele junto com a imagem da pagina inteira que apaga.
+  // Sem isso ele piscaria a cada troca de aba, mesmo sem o elemento ser recriado.
+  view-transition-name: bottom-nav;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  text-decoration: none;
+  cursor: pointer;
+
+  // O icone segue a cor do rotulo: cinza normal e verde no item ativo. O emoji ja vinha com
+  // a cor dele e nao precisava disso, mas o SVG herda a cor, entao precisa.
+  .em {
+    font-size: var(--t-nav-em);
+    line-height: 1;
+    color: var(--muted);
+  }
+
+  .lb {
+    font-size: var(--t-nav);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+  }
+
+  .dot {
+    width: var(--sz-dot);
+    height: var(--sz-dot);
+    border-radius: 50%;
+    background: transparent;
+    margin-top: var(--hairline);
+  }
+
+  &.on {
+    .em,
+    .lb {
+      color: var(--green);
+    }
+
+    .dot {
+      background: var(--green);
+    }
+  }
+}

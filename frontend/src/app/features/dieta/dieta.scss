@@ -1,0 +1,556 @@
+// Segue as classes .meal, .icons, .ai e .pick do prototipo de referencia.
+// As classes .search, .carregando, .fab e .btn-soft sao compartilhadas e ficam no _base.scss.
+//
+// No prototipo tinha aqui uma barra .tabs alternando entre Biblioteca e Diario. As duas
+// secoes viraram itens do menu de baixo, cada uma com a sua URL, e a barra de abas saiu.
+// Com dois controles para a mesma troca, o item destacado no menu ficava errado.
+
+.weeknav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--pad-week-x) var(--sp-4);
+
+  button {
+    border: 0;
+    background: transparent;
+    padding: var(--sp-1) var(--sp-2h);
+    font-family: inherit;
+    font-size: var(--t-chevron);
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  // Esse rotulo tambem abre o calendario do mes, por isso e um button e nao um span.
+  .rng {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+    font-size: var(--t-sub);
+    font-weight: var(--w-btn);
+    color: var(--text);
+    cursor: pointer;
+  }
+}
+
+.days {
+  display: flex;
+  gap: var(--sp-2);
+  padding: 0 var(--gap-page) var(--sp-5);
+}
+
+.day {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-ctl);
+  padding: var(--sp-3) 0 var(--sp-2h);
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--tr-ctl);
+
+  .dw {
+    display: block;
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+  }
+
+  .nm {
+    display: block;
+    font-size: var(--t-day-n);
+    font-weight: var(--w-btn);
+    line-height: var(--lh-day);
+    color: var(--ink);
+    margin-top: var(--sp-05);
+  }
+
+  // O pontinho verde marca o dia com consumo registrado. Quando nao tem, ele fica invisivel
+  // em vez de sumir, para as colunas com e sem registro terem a mesma altura.
+  .dt {
+    display: block;
+    width: var(--sz-day-dot);
+    height: var(--sz-day-dot);
+    border-radius: 50%;
+    background: var(--green);
+    margin: var(--gap-day-dot) auto 0;
+
+    &.off {
+      background: transparent;
+    }
+  }
+
+  &.on {
+    background: var(--green);
+
+    .dw,
+    .nm {
+      color: var(--on-cor);
+    }
+
+    .dt {
+      background: var(--on-green);
+    }
+  }
+}
+
+// Abre pelo rotulo .rng do .weeknav, dentro do painel de baixo. Por isso reaproveita as
+// mesmas cores e transicoes da faixa de dias, so trocando o flex por um grid de 7 colunas
+// para caber as ate 6 semanas do mes.
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--gap-stack);
+
+  button {
+    border: 0;
+    background: transparent;
+    padding: var(--sp-1) var(--sp-2h);
+    font-family: inherit;
+    font-size: var(--t-chevron);
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  span {
+    font-size: var(--t-sub);
+    font-weight: var(--w-btn);
+    color: var(--text);
+  }
+}
+
+.cal-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: var(--t-micro);
+  font-weight: var(--w-medium);
+  color: var(--muted);
+  margin-bottom: var(--sp-2);
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--sp-1);
+  margin-bottom: var(--gap-stack);
+}
+
+.cal-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: var(--bd-btn) solid transparent;
+  background: transparent;
+  border-radius: var(--r-ctl);
+  min-height: var(--sz-cal-day);
+  font-family: inherit;
+  font-size: var(--t-cal-n);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+  cursor: pointer;
+  transition: var(--tr-ctl);
+
+  // E o mesmo pontinho da faixa de dias: verde quando teve consumo e transparente quando
+  // nao teve. Fica invisivel em vez de sumir, para todas as celulas terem a mesma altura.
+  .dt {
+    display: block;
+    width: var(--sz-day-dot);
+    height: var(--sz-day-dot);
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: var(--gap-day-dot);
+
+    &.off {
+      background: transparent;
+    }
+  }
+
+  // Celulas do mes anterior e do seguinte. Continuam clicaveis, so ficam mais apagadas.
+  &.fora {
+    color: var(--faint);
+
+    // O pontinho fica apagado junto com a celula, senao o mes vizinho chamaria mais atencao
+    // que o mes que esta aberto.
+    .dt:not(.off) {
+      background: var(--green-soft);
+    }
+  }
+
+  // Anel verde para marcar o dia de hoje, sem competir com o fundo cheio do dia selecionado.
+  &.hoje {
+    border-color: var(--green);
+  }
+
+  &.on {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--on-cor);
+    font-weight: var(--w-btn);
+
+    // Em cima do verde cheio o pontinho verde sumiria, entao ele vira branco.
+    .dt:not(.off) {
+      background: var(--on-cor);
+    }
+  }
+}
+
+// Linha de refeicao da biblioteca, com alca de arrastar e menu de tres pontinhos.
+.lista {
+  list-style: none;
+}
+
+.meal {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  margin: 0 var(--gap-page) var(--gap-row);
+  padding: var(--pad-row);
+  background: var(--superficie);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh);
+
+  // A linha inteira afunda quando o dedo esta nela. O gatilho e o botao de dentro e nao a
+  // propria .meal, senao a alca de arrastar e o menu de tres pontinhos, que ficam ao lado
+  // dele e tem acao propria, afundariam a linha toda junto.
+  &:has(.linha:active) {
+    box-shadow: var(--sh-pressionado);
+  }
+
+  // A linha que esta sendo arrastada fica apagada, para dar para ver o espaco de destino.
+  &.drag {
+    opacity: var(--op-drag);
+  }
+
+  // Registro cujo total deixou algum item de fora. A linha precisa avisar isso.
+  &.sem-custo {
+    outline: var(--hairline) solid var(--amber);
+  }
+
+  // No diario a linha inteira abre o registro. Um button de verdade e nao um clique no
+  // li, para continuar sendo alcancado pelo teclado, com o botao de fechar do lado em vez de
+  // dentro dele.
+  .linha {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--gap-row);
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .grip {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+    font-size: var(--t-grip);
+    letter-spacing: var(--ls-grip);
+    line-height: 1;
+    color: var(--grip);
+    cursor: grab;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-meal-em);
+    height: var(--sz-meal-em);
+    border-radius: 50%;
+    background: var(--green-soft);
+    font-size: var(--t-meal-em);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-item);
+    font-weight: var(--w-item);
+    color: var(--ink);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-body);
+    color: var(--muted);
+    margin-top: var(--sp-05);
+  }
+
+  .v {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .p {
+    display: block;
+    font-size: var(--t-item);
+    font-weight: var(--w-title);
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  .u {
+    display: block;
+    font-size: var(--t-meal-u);
+    font-weight: var(--w-medium);
+    color: var(--faint);
+  }
+
+  .kb {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    padding: 0 var(--sp-05);
+    font-family: inherit;
+    font-size: var(--t-kebab);
+    line-height: 1;
+    color: var(--kebab);
+    cursor: pointer;
+  }
+}
+
+.icons {
+  display: grid;
+  grid-template-columns: repeat(var(--cols-icon), 1fr);
+  gap: var(--gap-icon);
+
+  button {
+    aspect-ratio: 1;
+    border: var(--bd-btn) solid transparent;
+    border-radius: var(--r-ctl);
+    background: var(--superficie);
+    box-shadow: var(--sh);
+    font-family: inherit;
+    font-size: var(--t-icon);
+    cursor: pointer;
+
+    &.on {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+  }
+}
+
+// Item ja adicionado ao rascunho da refeicao ("added item").
+.ai {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  background: var(--superficie);
+  border-radius: var(--r-ctl);
+  box-shadow: var(--sh);
+  padding: var(--sp-4) var(--gap-stack);
+  margin-bottom: var(--sp-3);
+
+  // Item cujo custo nao entrou no total. A linha precisa avisar isso.
+  &.sem-custo {
+    outline: var(--hairline) solid var(--amber);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-sub);
+    font-weight: var(--w-section);
+    color: var(--ink);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+    margin-top: var(--sp-05);
+  }
+
+  .rm {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--t-rm);
+    line-height: 1;
+    color: var(--red);
+    cursor: pointer;
+  }
+}
+
+// E um campo estreito dentro da propria legenda, porque ajustar a quantidade e so corrigir
+// um numero e nao preencher um formulario. Salva ao sair do campo, com uma requisicao por
+// edicao.
+.qi {
+  width: var(--sz-qi);
+  // Campo e cavidade, aqui como em qualquer outro. A borda de 1px que tinha no lugar era o
+  // unico campo do app desenhado com contorno.
+  border: 0;
+  background: var(--superficie);
+  box-shadow: var(--sh-afundado);
+  border-radius: var(--r-qi);
+  padding: var(--pad-qi);
+  font-family: inherit;
+  font-size: var(--t-qi);
+  font-weight: var(--w-btn);
+  color: var(--text);
+
+  &:focus {
+    outline: var(--sp-1) solid var(--green-soft);
+  }
+
+  // Mesmo brilho mais anel dos campos .fld. Quem tem contraste suficiente e o verde.
+  &:focus-visible {
+    outline: var(--sp-1) solid var(--green-soft);
+    box-shadow: var(--sh-afundado), 0 0 0 var(--bd-focus) var(--green);
+  }
+
+  &:disabled {
+    opacity: .55;
+  }
+}
+
+// Linha do catalogo de mercado na etapa de escolher item.
+.pick {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-row);
+  width: 100%;
+  background: var(--superficie);
+  border: 0;
+  border-radius: var(--r-ctl);
+  box-shadow: var(--sh);
+  padding: var(--sp-4) var(--gap-stack);
+  margin-bottom: var(--sp-3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    box-shadow: var(--sh-pressionado);
+  }
+
+  // Na escolha de item do mercado o fundo do circulo vem do [data-cat]. A refeicao nao tem
+  // categoria, entao aqui o verde da marca vai na mao.
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-pick-em);
+    height: var(--sz-pick-em);
+    border-radius: 50%;
+    font-size: var(--t-pick-em);
+
+    &.verde {
+      background: var(--green-soft);
+    }
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .t {
+    display: block;
+    font-size: var(--t-body);
+    font-weight: var(--w-section);
+    color: var(--ink);
+  }
+
+  .s {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+    margin-top: var(--hairline);
+  }
+
+  .add {
+    flex-shrink: 0;
+    font-size: var(--t-add);
+    font-weight: var(--w-btn);
+    line-height: 1;
+    color: var(--green);
+  }
+}
+
+// Aviso explicativo dentro do painel de baixo.
+.note {
+  font-size: var(--t-meta);
+  font-weight: var(--w-body);
+  color: var(--muted);
+  line-height: var(--lh-body);
+  margin-bottom: var(--gap-stack);
+
+  // Aviso de total incompleto. Fica amarelo e nao vermelho, porque nada foi perdido.
+  &.aviso {
+    color: var(--amber-ink);
+    font-weight: var(--w-medium);
+  }
+}
+
+// Fora do painel nao tem espaco interno do corpo, entao a margem lateral vem da coluna.
+.aviso-dia,
+.erro-dia {
+  margin: 0 var(--gap-page) var(--gap-stack);
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+}
+
+// Amarelo porque o total esta incompleto, mas nada foi perdido.
+.aviso-dia {
+  color: var(--amber-ink);
+}
+
+.erro-dia {
+  color: var(--red);
+}
+
+// A .btn-soft foi criada dentro do painel, onde o corpo ja da o espaco lateral.
+.btn-soft.solto {
+  width: auto;
+  margin: 0 var(--gap-page) var(--gap-stack);
+}
+
+// E o contrario da .btn-soft.solto: a .search foi criada na tela e ja traz o recuo lateral,
+// mas a .sh-b tambem aplica esse recuo. Com os dois juntos a busca ficaria mais afastada que
+// as linhas .pick.
+.search.embutida {
+  margin-inline: 0;
+}
+
+.espaco {
+  margin-bottom: var(--gap-stack);
+}
+

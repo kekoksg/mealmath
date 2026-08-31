@@ -1,0 +1,24 @@
+// O componente e uma caixa do tamanho da fonte que ele herda. Quem posiciona o icone e o
+// layout de quem usa ele, do mesmo jeito que era com o emoji que ele substituiu.
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  // O traco dos icones do Solar usa currentColor. Herdar a cor de onde esta e o que faz o
+  // mesmo icone ficar verde no item ativo do menu e cinza no inativo.
+  color: inherit;
+}
+
+// Emoji que ficou salvo antes da troca de icones. Some sozinho conforme os registros vao
+// sendo migrados.
+.legado {
+  font-size: 1em;
+  line-height: 1;
+}

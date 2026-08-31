@@ -1,0 +1,207 @@
+// Segue as classes .prof, .stats, .info e .logout do prototipo de referencia.
+// As classes .card, .empty, .carregando, .btn-out e .fld sao compartilhadas e ficam no
+// styles/_base.scss.
+
+// E o unico bloco do app sem cartao. O avatar ja e a figura, e colocar ele dentro de um
+// cartao daria duas bordas uma dentro da outra. O que vem depois volta ao cartao de sempre.
+.prof {
+  text-align: center;
+  padding: var(--pad-prof);
+
+  .av {
+    display: grid;
+    place-items: center;
+    width: var(--sz-prof-av);
+    height: var(--sz-prof-av);
+    border-radius: 50%;
+    background: var(--green);
+    font-size: var(--t-prof-av);
+    line-height: 1;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: var(--t-prof-nome);
+    font-weight: var(--w-title);
+    color: var(--ink);
+    letter-spacing: var(--ls-tight);
+    margin-top: var(--sp-4);
+    // Nome longo em uma coluna de 390px quebra a linha, em vez de vazar pela lateral.
+    overflow-wrap: anywhere;
+  }
+
+  .email {
+    font-size: var(--t-legenda);
+    font-weight: var(--w-body);
+    color: var(--muted);
+    margin-top: var(--sp-075);
+    overflow-wrap: anywhere;
+  }
+}
+
+// Cartao com os tres numeros da conta: refeicoes, itens e custo medio por dia.
+.stats {
+  display: flex;
+  background: var(--superficie);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh);
+  // A legenda logo abaixo faz parte desse cartao, entao o espaco ate ela e menor que o
+  // espaco entre os cartoes. Senao ela pareceria legenda da linha de baixo.
+  margin: 0 var(--gap-page) var(--sp-2h);
+  padding: var(--pad-stats);
+
+  div {
+    flex: 1;
+    // Sem isso a coluna do valor em dinheiro empurra as outras duas em vez de ceder espaco.
+    min-width: 0;
+    text-align: center;
+  }
+
+  .n {
+    font-size: var(--t-stat-n);
+    font-weight: var(--w-title);
+    color: var(--green);
+    letter-spacing: var(--ls-tight);
+  }
+
+  .l {
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+    margin-top: var(--sp-075);
+  }
+}
+
+// Abaixo dos 390px do projeto, tres colunas nao cabem com "R$ 1.234,56" no tamanho grande.
+// Entao o numero diminui antes de estourar o cartao.
+@media (max-width: 374px) {
+  .stats .n {
+    font-size: var(--t-item);
+  }
+}
+
+// A media divide pelos dias da janela e nao pelos dias que tem registro. E essa legenda que
+// impede o usuario de ler um mes pela metade como um mes barato.
+.stats-cap {
+  margin: 0 var(--gap-page) var(--gap-stack);
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+  color: var(--faint);
+  text-align: center;
+}
+
+// O mesmo cartao serve para button, a e p. Nem toda linha leva a algum lugar, mas todas
+// parecem iguais na tela. O elemento HTML muda conforme o que a linha faz.
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-info);
+  width: calc(100% - var(--gap-page) * 2);
+  margin: 0 var(--gap-page) var(--gap-row);
+  padding: var(--sp-5);
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--superficie);
+  box-shadow: var(--sh);
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  // Quando a linha leva a algum lugar ela e um a. Sem definir a cor, o SVG de dentro
+  // herdaria o azul de link do navegador.
+  color: var(--text);
+  cursor: pointer;
+
+  &:active {
+    box-shadow: var(--sh-pressionado);
+  }
+
+  // Linha que nao faz nada: tira o cursor de mao e o efeito de afundar no toque.
+  &.estatica {
+    cursor: default;
+
+    &:active {
+      box-shadow: var(--sh);
+    }
+  }
+
+  // Aqui e quadrado e nao circulo. O circulo e usado no icone de item de mercado e de
+  // refeicao, e repetir ele aqui daria a entender que essa linha tambem e um item da lista.
+  .em {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--sz-info-em);
+    height: var(--sz-info-em);
+    border-radius: var(--r-info-em);
+    background: var(--bg);
+    font-size: var(--t-info-em);
+  }
+
+  .bd {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .l {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--muted);
+  }
+
+  .v {
+    display: block;
+    font-size: var(--t-info-v);
+    font-weight: var(--w-section);
+    color: var(--ink);
+    margin-top: var(--sp-05);
+  }
+
+  .acao {
+    flex-shrink: 0;
+    font-size: var(--t-meta);
+    font-weight: var(--w-btn);
+    color: var(--green);
+  }
+}
+
+// O vermelho fica so no texto e nao no fundo. Sair da conta da para desfazer fazendo login
+// de novo, e um botao vermelho cheio chamaria a mesma atencao que apagar dados.
+.logout {
+  width: calc(100% - var(--gap-page) * 2);
+  margin: var(--sp-2) var(--gap-page) var(--gap-page);
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--superficie);
+  box-shadow: var(--sh);
+  padding: var(--pad-logout);
+  font-family: inherit;
+  font-size: var(--t-btn);
+  font-weight: var(--w-btn);
+  color: var(--red);
+  cursor: pointer;
+
+  &:active {
+    box-shadow: var(--sh-pressionado);
+  }
+}
+
+// Aviso explicativo dentro do painel de baixo.
+.nota {
+  font-size: var(--t-meta);
+  font-weight: var(--w-body);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  margin-bottom: var(--gap-stack);
+}
+
+.espaco {
+  margin-bottom: var(--gap-stack);
+}
+
+// O botao de remover fica separado, abaixo do salvar, porque ele sai do formulario em vez de
+// ser uma alternativa a ele.
+.btn-soft.destrutivo {
+  margin-top: var(--gap-row);
+}

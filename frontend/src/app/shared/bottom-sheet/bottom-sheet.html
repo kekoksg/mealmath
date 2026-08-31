@@ -1,0 +1,36 @@
+<div class="scrim" [class.saindo]="saindo()" (click)="aoClicarNoVeu($event)">
+  <!-- O tabindex="-1" deixa o painel receber o foco ao abrir sem entrar na ordem do Tab.
+       Ele e o ponto de partida e nao uma parada. -->
+  <section
+    class="sheet"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+    [class.arrastando]="arrastando()"
+    [style.transform]="deslocamento()"
+    (transitionend)="aoTerminarTransicao($event)"
+    [attr.aria-label]="titulo()"
+    #painel
+  >
+    <!-- A alca e o cabecalho sao a area de arraste. O corpo fica de fora de proposito,
+         porque e ele que rola, e se os dois disputassem o gesto a lista travaria. -->
+    <div
+      class="puxador"
+      (pointerdown)="aoPressionar($event)"
+      (pointermove)="aoMover($event)"
+      (pointerup)="aoSoltar()"
+      (pointercancel)="aoSoltar()"
+    >
+      <div class="grab" aria-hidden="true"></div>
+
+      <header class="sh-h">
+        <h3>{{ titulo() }}</h3>
+        <button type="button" aria-label="Fechar" (click)="fechar.emit()"><app-icone nome="fechar" /></button>
+      </header>
+    </div>
+
+    <div class="sh-b" #corpo>
+      <ng-content />
+    </div>
+  </section>
+</div>

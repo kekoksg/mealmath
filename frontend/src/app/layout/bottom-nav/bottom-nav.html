@@ -1,0 +1,15 @@
+<nav class="nav" aria-label="Navegação principal">
+  @for (item of itens; track item.rota) {
+    <a
+      class="nav-item"
+      [routerLink]="item.rota"
+      routerLinkActive="on"
+      #ativo="routerLinkActive"
+      [attr.aria-current]="ativo.isActive ? 'page' : null"
+    >
+      <app-icone class="em" [nome]="item.icone" />
+      <span class="lb">{{ item.rotulo }}</span>
+      <span class="dot" aria-hidden="true"></span>
+    </a>
+  }
+</nav>

@@ -1,0 +1,48 @@
+{
+  "name": "MealMath",
+  "short_name": "MealMath",
+  "description": "Descubra o custo real de cada refeição a partir dos preços do mercado.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F5F5",
+  "theme_color": "#F5F5F5",
+  "categories": ["food", "finance", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Diário",
+      "short_name": "Diário",
+      "description": "Registrar o que foi comido hoje",
+      "url": "/diario"
+    },
+    {
+      "name": "Refeições",
+      "short_name": "Refeições",
+      "description": "Ver e editar os modelos salvos",
+      "url": "/refeicoes"
+    }
+  ]
+}

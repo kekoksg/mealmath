@@ -1,0 +1,281 @@
+<!-- O nome e o e-mail saem do token, entao aparecem na hora, sem esperar a API. -->
+<header class="prof">
+  <p class="av" aria-hidden="true"><app-icone nome="perfil" /></p>
+  <h1>{{ nome() }}</h1>
+  @if (email()) {
+    <p class="email">{{ email() }}</p>
+  }
+  <button class="btn-out" type="button" (click)="abrirEdicao()">Editar perfil</button>
+</header>
+
+@if (carregando()) {
+  <section class="card">
+    <p class="carregando" role="status">Carregando os dados da conta…</p>
+  </section>
+} @else if (erro(); as falha) {
+  <section class="card">
+    <div class="empty">
+      <app-icone class="em" nome="sem-rede" />
+      <h4>Não deu para carregar</h4>
+      <p role="alert">{{ falha }}</p>
+      <button class="btn-out" type="button" (click)="carregar()">Tentar de novo</button>
+    </div>
+  </section>
+} @else if (dados(); as resumo) {
+  @if (contaVazia()) {
+    <!-- Tres zeros sem explicacao nao dizem o que fazer, entao coloco um convite. -->
+    <section class="card">
+      <div class="empty">
+        <app-icone class="em" nome="mercado" />
+        <h4>Sua conta ainda está vazia</h4>
+        <p>
+          Cadastre os itens que você compra no mercado. É do preço da embalagem que sai o custo de
+          cada porção — e daí em diante os números desta tela ganham sentido.
+        </p>
+        <a class="btn-out" routerLink="/mercado">Ir para o mercado</a>
+      </div>
+    </section>
+  } @else {
+    <section class="stats" aria-label="Resumo da conta">
+      <div>
+        <p class="n">{{ resumo.refeicoes }}</p>
+        <p class="l">{{ resumo.refeicoes === 1 ? 'Refeição' : 'Refeições' }}</p>
+      </div>
+      <div>
+        <p class="n">{{ resumo.itens }}</p>
+        <p class="l">{{ resumo.itens === 1 ? 'Item' : 'Itens' }}</p>
+      </div>
+      <div>
+        <p class="n">{{ resumo.custoMedioPorDia | moeda }}</p>
+        <p class="l">Custo/dia</p>
+      </div>
+    </section>
+
+    <!-- A media divide pelos 30 dias da janela, e o contador mostra quantos tem registro. -->
+    <p class="stats-cap">Média dos últimos 30 dias · {{ completude() }}</p>
+  }
+
+  <!-- Meta de orcamento (RF010). E a mesma meta que o dashboard usa no progresso. -->
+  <button class="info" type="button" (click)="abrirMeta()">
+    <app-icone class="em" nome="meta" />
+    <span class="bd">
+      <span class="l">{{ rotuloDaMeta() }}</span>
+      <span class="v">{{ valorDaMeta() }}</span>
+    </span>
+    <span class="acao">{{ resumo.meta ? 'Editar' : 'Definir' }}</span>
+  </button>
+
+  <!-- Isso nao e um botao de ligar e desligar. Mostra quantos precos subiram desde a ultima
+       compra (RF007). -->
+  <a class="info" routerLink="/dashboard">
+    <app-icone class="em" nome="alerta" />
+    <span class="bd">
+      <span class="l">Alertas de variação</span>
+      <span class="v">{{ resumoDeAltas() }}</span>
+    </span>
+    <app-icone class="acao" nome="proximo" />
+  </a>
+}
+
+<button class="info" type="button" (click)="abrirSenha()">
+  <app-icone class="em" nome="perfil" />
+  <span class="bd">
+    <span class="l">Senha</span>
+    <span class="v">Alterar a senha de acesso</span>
+  </span>
+  <span class="acao">Alterar</span>
+</button>
+
+@if (membroDesde(); as desde) {
+  <p class="info estatica">
+    <app-icone class="em" nome="membro" />
+    <span class="bd">
+      <span class="l">Membro desde</span>
+      <span class="v">{{ desde }}</span>
+    </span>
+  </p>
+}
+
+<button class="logout" type="button" (click)="sair()">Sair da conta</button>
+
+@if (etapa(); as passo) {
+  <app-bottom-sheet [titulo]="tituloSheet()" (fechar)="fecharSheet()">
+    @switch (passo) {
+      @case ('meta') {
+        <form [formGroup]="formMeta" (ngSubmit)="salvarMeta()">
+          <div class="fld" [class.invalido]="invalidoValor()">
+            <label for="meta-valor">Valor-limite (R$)</label>
+            <input
+              id="meta-valor"
+              type="number"
+              inputmode="decimal"
+              step="any"
+              min="0"
+              formControlName="valor"
+              placeholder="Ex.: 450,00"
+              [attr.aria-invalid]="invalidoValor()"
+            />
+            @if (mensagemValor(); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <div class="fld">
+            <label for="meta-periodo">Período</label>
+            <select id="meta-periodo" formControlName="periodo">
+              @for (opcao of periodosMeta; track opcao.valor) {
+                <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+              }
+            </select>
+          </div>
+
+          <p class="nota">
+            O painel rateia a meta pela duração do período consultado: um limite mensal visto na aba
+            Semana vale a fração equivalente a 7 dias.
+          </p>
+
+          @if (erroForm(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <button class="btn" type="submit" [disabled]="salvando()">
+            @if (salvando()) {
+              Salvando…
+            } @else {
+              Salvar meta
+            }
+          </button>
+
+          @if (dados()?.meta) {
+            <button class="btn-soft destrutivo" type="button" (click)="confirmarRemocao()">
+              Remover meta
+            </button>
+          }
+        </form>
+      }
+
+      @case ('editar') {
+        <form [formGroup]="formPerfil" (ngSubmit)="salvarPerfil()">
+          <div class="fld" [class.invalido]="invalido(formPerfil.controls.nome, 'nome')">
+            <label for="perfil-nome">Nome</label>
+            <input
+              id="perfil-nome"
+              type="text"
+              autocomplete="name"
+              formControlName="nome"
+              [attr.aria-invalid]="invalido(formPerfil.controls.nome, 'nome')"
+            />
+            @if (mensagemDoCampo(formPerfil.controls.nome, 'nome'); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <div class="fld" [class.invalido]="invalido(formPerfil.controls.email, 'email')">
+            <label for="perfil-email">E-mail</label>
+            <input
+              id="perfil-email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              formControlName="email"
+              [attr.aria-invalid]="invalido(formPerfil.controls.email, 'email')"
+            />
+            @if (mensagemDoCampo(formPerfil.controls.email, 'email'); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <p class="nota">
+            O e-mail é o que você usa para entrar. Ao trocá-lo, o login passa a valer com o novo
+            endereço.
+          </p>
+
+          @if (erroForm(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <button class="btn" type="submit" [disabled]="salvando()">
+            @if (salvando()) {
+              Salvando…
+            } @else {
+              Salvar alterações
+            }
+          </button>
+        </form>
+      }
+
+      @case ('senha') {
+        <form [formGroup]="formSenha" (ngSubmit)="salvarSenha()">
+          <div class="fld" [class.invalido]="invalido(formSenha.controls.senhaAtual, 'senhaAtual')">
+            <label for="perfil-senha-atual">Senha atual</label>
+            <input
+              id="perfil-senha-atual"
+              type="password"
+              autocomplete="current-password"
+              formControlName="senhaAtual"
+              [attr.aria-invalid]="invalido(formSenha.controls.senhaAtual, 'senhaAtual')"
+            />
+            @if (mensagemDoCampo(formSenha.controls.senhaAtual, 'senhaAtual'); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <div class="fld" [class.invalido]="invalido(formSenha.controls.novaSenha, 'novaSenha')">
+            <label for="perfil-senha-nova">Nova senha</label>
+            <input
+              id="perfil-senha-nova"
+              type="password"
+              autocomplete="new-password"
+              formControlName="novaSenha"
+              [attr.aria-invalid]="invalido(formSenha.controls.novaSenha, 'novaSenha')"
+            />
+            @if (mensagemDoCampo(formSenha.controls.novaSenha, 'novaSenha'); as aviso) {
+              <p class="erro-campo">{{ aviso }}</p>
+            }
+          </div>
+
+          <p class="nota">
+            Pedimos a senha atual para garantir que é você — mesmo com a sessão já aberta.
+          </p>
+
+          @if (erroForm(); as falha) {
+            <p class="erro-form" role="alert">{{ falha }}</p>
+          }
+
+          <button class="btn" type="submit" [disabled]="salvando()">
+            @if (salvando()) {
+              Alterando…
+            } @else {
+              Alterar senha
+            }
+          </button>
+        </form>
+      }
+
+      @case ('remover-meta') {
+        <p class="nota">
+          Sem meta, o painel deixa de mostrar o progresso e volta a oferecer a definição. Nenhum
+          registro do diário é perdido, e você pode cadastrar outra a qualquer momento.
+        </p>
+
+        @if (erroForm(); as falha) {
+          <p class="erro-form" role="alert">{{ falha }}</p>
+        }
+
+        <button
+          class="btn destrutivo espaco"
+          type="button"
+          [disabled]="removendo()"
+          (click)="removerMeta()"
+        >
+          @if (removendo()) {
+            Removendo…
+          } @else {
+            Remover meta
+          }
+        </button>
+        <button class="btn-out" type="button" (click)="voltarParaMeta()">Cancelar</button>
+      }
+    }
+  </app-bottom-sheet>
+}

@@ -1,0 +1,48 @@
+// Segue as classes .phone e .screen do prototipo de referencia, sem a moldura de celular
+// desenhada. Feito para 390px e centralizado em telas largas.
+:host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--app-max);
+  // Tem que ser height e nao min-height. O .nav e position: absolute com bottom: 0 dentro
+  // desse host, entao se a altura fosse so um minimo, uma tela com muito conteudo esticaria
+  // o host alem da janela e empurraria o menu para fora, em vez de deixar a .screen rolar
+  // sozinha por baixo dele.
+  height: 100dvh;
+  margin: 0 auto;
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+// Passando do --app-max sobra faixa nas laterais, e a coluna precisa de um limite visivel.
+// Sem isso ela vira um bloco da cor --bg em cima de outro igual, sem comeco nem fim. So a
+// moldura muda: o layout de dentro continua sendo o de 390px, que e o alvo do projeto.
+@media (min-width: 480px) {
+  :host {
+    min-height: auto;
+    // Altura da tela cheia menos o espaco que deixa a moldura aparecer em cima e embaixo.
+    height: calc(100dvh - var(--gap-page) * 2);
+    margin: var(--gap-page) auto;
+    border-radius: var(--r-desk);
+    box-shadow: var(--sh-desk);
+  }
+}
+
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  // Esse espaco evita que a ultima linha da lista fique embaixo do menu, que por sua vez
+  // cresce junto com a area segura do celular.
+  padding-bottom: calc(var(--nav-clear) + var(--safe-b));
+  // A rolagem fica presa na coluna. Sem isso, chegar no fim da lista passa o gesto para a
+  // pagina e dispara o "puxar para atualizar" do navegador, que recarrega tudo.
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

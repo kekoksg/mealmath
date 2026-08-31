@@ -1,0 +1,75 @@
+<div class="auth">
+  <header class="head auth-head">
+    <div class="marca" aria-hidden="true"><app-icone nome="marca" /></div>
+    <h1 class="title">Criar conta</h1>
+    <p class="subtitle">Comece a medir o custo real do que você come.</p>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="criarConta()">
+    <div class="fld" [class.invalido]="invalido('nome')">
+      <label for="nome">Nome</label>
+      <input
+        id="nome"
+        type="text"
+        formControlName="nome"
+        placeholder="Como devemos te chamar"
+        autocomplete="name"
+        [attr.aria-invalid]="invalido('nome')"
+      />
+      @if (mensagem('nome'); as aviso) {
+        <p class="erro-campo">{{ aviso }}</p>
+      }
+    </div>
+
+    <div class="fld" [class.invalido]="invalido('email')">
+      <label for="email">E-mail</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="voce@email.com"
+        autocomplete="email"
+        [attr.aria-invalid]="invalido('email')"
+      />
+      @if (mensagem('email'); as aviso) {
+        <p class="erro-campo">{{ aviso }}</p>
+      }
+    </div>
+
+    <div class="fld" [class.invalido]="invalido('senha')">
+      <label for="senha">Senha</label>
+      <div class="campo-senha">
+        <input
+          id="senha"
+          [type]="mostrarSenha() ? 'text' : 'password'"
+          formControlName="senha"
+          placeholder="Mínimo de 8 caracteres"
+          autocomplete="new-password"
+          [attr.aria-invalid]="invalido('senha')"
+        />
+        <button
+          type="button"
+          class="alternar-senha"
+          [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
+          [attr.aria-pressed]="mostrarSenha()"
+          (click)="alternarSenha()"
+        >
+          <app-icone [nome]="mostrarSenha() ? 'olho-fechado' : 'olho'" />
+        </button>
+      </div>
+      @if (mensagem('senha'); as aviso) {
+        <p class="erro-campo">{{ aviso }}</p>
+      }
+    </div>
+
+    @if (erro(); as falha) {
+      <p class="erro-form" role="alert">{{ falha }}</p>
+    }
+
+    <button class="btn" type="submit" [disabled]="enviando()">
+      {{ enviando() ? 'Criando conta…' : 'Criar conta' }}
+    </button>
+  </form>
+
+  <p class="foot-note">Já tem conta? <a routerLink="/login">Entrar</a></p>
+</div>

@@ -1,0 +1,630 @@
+// Classes globais, que sao as mesmas do prototipo de referencia.
+// Ficam no escopo global porque todas as telas usam elas.
+// Estilo de uma tela so vai no .scss do proprio componente.
+// Aqui nao pode ter valor solto, so var(--nome-da-variavel).
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  // Desliga o "puxar para atualizar" e o efeito de elastico do navegador. Sem isso,
+  // arrastar a lista para baixo recarregava a pagina toda, o que nenhum app faz.
+  overscroll-behavior: none;
+}
+
+// O withViewTransitions do app.config.ts faz a troca de tela com uma transicao suave do
+// proprio navegador, em vez do corte seco padrao do Router. Esses pseudo-elementos ficam
+// fora da arvore normal do HTML, por isso esse bloco precisa ser global.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--tr-rota-dur);
+  animation-timing-function: var(--tr-rota-ease);
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--t-body);
+  font-weight: var(--w-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  // Tira o retangulo azul do toque e o menu de "Copiar" ao segurar, que deixam com cara
+  // de site. O retorno visual do toque ja vem do :active de cada botao.
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+// A interface nao pode ser selecionada, mas o que o usuario digita ou precisa copiar, sim.
+input,
+textarea,
+select {
+  user-select: text;
+  // Coloco o minimo de 16px no elemento e nao so nas classes de campo. Um campo novo que
+  // ainda nao tem .fld ou .search cairia no padrao do navegador, que e 13px, e traria de
+  // volta o zoom do iPhone sem ninguem perceber.
+  font-size: var(--t-field);
+}
+
+// Desliga o zoom de toque duplo nos controles. Assim o navegador para de esperar o segundo
+// toque e o botao responde na hora, sem aquele atraso tipico de site.
+a,
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+// A coluna do app para de crescer no --app-max. Acima disso o fundo muda de tom para a
+// faixa das laterais parecer uma moldura e nao o app esticado, igual ao prototipo.
+// O ponto de corte e o --app-max (430px) mais uma folga, porque abaixo disso nem sobra faixa.
+@media (min-width: 480px) {
+  body {
+    background: var(--bg-desk);
+  }
+}
+
+// Um anel so para o app inteiro. :focus-visible e nao :focus porque clique de mouse nao
+// deve deixar anel, mas quem navega pelo teclado precisa ver onde esta. O afastamento joga o
+// anel para fora do elemento, entao ele e desenhado sobre o fundo claro da pagina mesmo
+// quando o botao e verde, e uma cor so resolve os dois casos. O :where() zera a
+// especificidade, para a tela conseguir sobrescrever quando precisar.
+// O tabindex="-1" fica de fora porque ele e alvo de foco por codigo, como o painel de
+// baixo ao abrir, e nao uma parada do Tab. Ele nao deve ganhar anel.
+:where(a, button, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: var(--bd-focus) solid var(--ink);
+  outline-offset: var(--off-focus);
+}
+
+.head {
+  padding: var(--pad-head-t) var(--gap-page) var(--gap-stack);
+  // Sem a barra do navegador no topo, o titulo ficaria embaixo do relogio e do notch.
+  padding-top: calc(var(--pad-head-t) + var(--safe-t));
+}
+
+.greet {
+  font-size: var(--t-sub);
+  font-weight: var(--w-body);
+  color: var(--muted);
+  margin-bottom: var(--sp-1);
+}
+
+.title {
+  font-size: var(--t-title);
+  font-weight: var(--w-title);
+  color: var(--ink);
+  letter-spacing: var(--ls-tight);
+}
+
+.subtitle {
+  font-size: var(--t-sub);
+  font-weight: var(--w-body);
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+
+.card {
+  // O cartao usa o mesmo tom do fundo. Ele nao e uma folha branca por cima, e um pedaco da
+  // superficie empurrado para fora. Quem separa ele do fundo e a sombra e nao a cor.
+  background: var(--superficie);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh);
+  margin: 0 var(--gap-page) var(--gap-stack);
+  padding: var(--gap-card);
+}
+
+.card-t {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--gap-stack);
+
+  .em {
+    font-size: var(--t-section);
+  }
+
+  h3 {
+    font-size: var(--t-section);
+    font-weight: var(--w-section);
+    color: var(--text);
+  }
+
+  .side {
+    margin-left: auto;
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--faint);
+  }
+}
+
+// Sempre com um caminho a seguir: icone, titulo e o proximo passo.
+.empty {
+  text-align: center;
+  padding: var(--pad-empty);
+
+  .em {
+    font-size: var(--t-empty-em);
+    line-height: 1;
+  }
+
+  h4 {
+    font-size: var(--t-empty-t);
+    font-weight: var(--w-title);
+    color: var(--ink);
+    margin-top: var(--sp-4);
+  }
+
+  p {
+    font-size: var(--t-empty-p);
+    font-weight: var(--w-body);
+    color: var(--muted);
+    line-height: var(--lh-body);
+    margin-top: var(--sp-2);
+  }
+
+  // O botao do estado vazio nao ocupa a largura toda, porque e um convite e nao um formulario.
+  .btn,
+  .btn-out {
+    display: inline-block;
+    width: auto;
+    margin-top: var(--sp-5);
+    padding-left: var(--gap-page);
+    padding-right: var(--gap-page);
+  }
+}
+
+.btn,
+.btn-out {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  border-radius: var(--r-ctl);
+  padding: var(--pad-btn);
+  font-family: inherit;
+  font-size: var(--t-btn);
+  font-weight: var(--w-btn);
+  cursor: pointer;
+
+  // O botao afunda em vez de encolher, como uma tecla que desce ate o nivel da superficie.
+  &:active {
+    transform: translateY(var(--hairline));
+    box-shadow: var(--sh-pressionado);
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+}
+
+.btn {
+  border: 0;
+  background: var(--green);
+  box-shadow: var(--sh-verde);
+  color: var(--on-cor);
+
+  // O afundado cinza em cima do verde vira uma mancha suja. Aqui o mesmo movimento
+  // acontece nos tons do proprio verde.
+  &:active {
+    box-shadow: var(--sh-verde-pressionado);
+  }
+}
+
+// Sem cor de fundo. O botao e a propria superficie em relevo e o verde fica so no texto.
+.btn-out {
+  border: 0;
+  background: var(--superficie);
+  box-shadow: var(--sh);
+  color: var(--green);
+}
+
+// Botao de adicionar. A borda e tracejada porque o que vem depois ainda nao existe.
+//
+// E a unica peca da interface sem relevo, de proposito: um vazio a preencher nao pode estar
+// em relevo. Com a sombra --sh ele afirmava "sou solido" e com o tracejado "ainda nao tem
+// nada aqui" ao mesmo tempo.
+.btn-soft {
+  display: block;
+  width: 100%;
+  border: var(--bd-btn) dashed var(--line-2);
+  border-radius: var(--r-ctl);
+  background: var(--superficie);
+  padding: var(--pad-btn);
+  font-family: inherit;
+  font-size: var(--t-sub);
+  font-weight: var(--w-btn);
+  color: var(--green);
+  cursor: pointer;
+
+  &:active {
+    transform: translateY(var(--hairline));
+    box-shadow: var(--sh-pressionado);
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+}
+
+// Vale para apagar refeicao, remover registro do dia e remover item do mercado. Estava
+// escrita duas vezes, em dieta.scss e em perfil.scss, e as duas copias ja tinham comecado a
+// divergir. O vermelho e o unico outro fundo cheio do app, entao ele repete a estrutura do
+// verde: cor, sombra da propria cor e afundamento nos tons dela.
+.destrutivo {
+  color: var(--red);
+}
+
+.btn.destrutivo {
+  background: var(--red);
+  box-shadow: var(--sh-vermelho);
+  color: var(--on-cor);
+
+  &:active {
+    box-shadow: var(--sh-vermelho-pressionado);
+  }
+}
+
+// Campo de formulario: rotulo, controle e mensagem de erro.
+.fld {
+  margin-bottom: var(--gap-stack);
+
+  label {
+    display: block;
+    font-size: var(--t-meta);
+    font-weight: var(--w-section);
+    color: var(--text);
+    margin-bottom: var(--sp-2);
+  }
+
+  input,
+  select {
+    width: 100%;
+    // O campo e uma cavidade: as mesmas duas sombras do relevo, so que viradas para
+    // dentro. E o contrario do botao, e ja indica que ali se escreve.
+    border: 0;
+    background: var(--superficie);
+    box-shadow: var(--sh-afundado);
+    border-radius: var(--r-ctl);
+    padding: var(--pad-field);
+    font-family: inherit;
+    font-size: var(--t-field);
+    font-weight: var(--w-body);
+    color: var(--text);
+
+    &::placeholder {
+      color: var(--faint);
+    }
+
+    &:focus {
+      outline: var(--sp-1) solid var(--green-soft);
+    }
+
+    // O brilho --green-soft do prototipo e so decoracao: contra a superficie do campo ele
+    // da por volta de 1,1:1 de contraste e nao serve para indicar foco no teclado. Quem faz
+    // esse papel e o anel verde colado na borda. O --sh vem na frente para o campo nao
+    // perder o relevo quando recebe o foco.
+    &:focus-visible {
+      outline: var(--sp-1) solid var(--green-soft);
+      box-shadow: var(--sh-afundado), 0 0 0 var(--bd-focus) var(--green);
+    }
+  }
+
+  // Campo com erro, seja pela validacao da tela ou pelo mapa de campos de um 400 da API.
+  &.invalido input,
+  &.invalido select {
+    outline: var(--bd-invalid) solid var(--red);
+  }
+
+  .erro-campo {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    color: var(--red);
+    margin-top: var(--sp-2);
+  }
+}
+
+// Usado no login e no cadastro. O campo continua sendo o input normal do .fld, so ganha um
+// recuo a direita para o texto nao passar por baixo do botao do olho.
+.campo-senha {
+  position: relative;
+
+  input {
+    padding-right: var(--ic-inset);
+  }
+}
+
+.alternar-senha {
+  position: absolute;
+  right: var(--sp-4);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  padding: var(--sp-1);
+  font-size: var(--t-ic);
+  line-height: 1;
+  cursor: pointer;
+}
+
+// E a classe .two do prototipo, usada em preco com categoria e quantidade com unidade.
+.two {
+  display: flex;
+  gap: var(--gap-field);
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Bloco que abre a tela mostrando o numero mais importante. O .hero.dia e a versao menor:
+// mesmo bloco, valor com fonte menor, porque o custo de um dia nao pode competir com o
+// total do periodo.
+.hero {
+  // E o unico bloco com cor cheia da tela. Verde chapado, o mesmo do botao e do botao
+  // flutuante: o degrade que tinha aqui era um segundo verde fazendo o papel do primeiro.
+  background: var(--green);
+  color: var(--on-cor);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-verde);
+  margin: 0 var(--gap-page) var(--gap-stack);
+  padding: var(--gap-page);
+
+  .lbl {
+    font-size: var(--t-hero-lbl);
+    font-weight: var(--w-btn);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--on-green);
+  }
+
+  .val {
+    font-size: var(--t-hero);
+    font-weight: var(--w-hero);
+    letter-spacing: var(--ls-hero);
+    line-height: var(--lh-hero);
+    margin: var(--sp-2) 0 var(--sp-05);
+  }
+
+  &.dia .val {
+    font-size: var(--t-hero-sm);
+  }
+}
+
+// Faixa verde que mostra o resultado da conta enquanto o usuario digita.
+.live {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-row);
+  background: var(--green);
+  color: var(--on-cor);
+  border-radius: var(--r-live);
+  padding: var(--sp-5);
+  margin: var(--sp-1) 0 var(--gap-stack);
+
+  .k {
+    font-size: var(--t-meta);
+    font-weight: var(--w-medium);
+    color: var(--on-green);
+  }
+
+  .v {
+    font-size: var(--t-live);
+    font-weight: var(--w-title);
+    letter-spacing: var(--ls-tight);
+    text-align: right;
+  }
+}
+
+// Usado em senha recusada, e-mail ja cadastrado e falha de conexao.
+.erro-form {
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  color: var(--red);
+  margin-bottom: var(--gap-row);
+}
+
+// Coluna centralizada e sem o menu de baixo.
+.auth {
+  width: 100%;
+  max-width: var(--app-max);
+  margin: 0 auto;
+  padding-top: var(--sp-6);
+}
+
+// Mesmo enquadramento das telas de dentro: passando do --app-max a coluna descola do fundo,
+// em vez de virar um bloco da mesma cor em cima de outro igual. Ver o body no shell.scss.
+@media (min-width: 480px) {
+  .auth {
+    background: var(--bg);
+    border-radius: var(--r-desk);
+    box-shadow: var(--sh-desk);
+    margin: var(--gap-page) auto;
+    padding-bottom: var(--sp-6);
+  }
+}
+
+.auth-head {
+  text-align: center;
+}
+
+.marca {
+  font-size: var(--t-empty-em);
+  line-height: 1;
+  margin-bottom: var(--sp-4);
+}
+
+// Fica global porque a tela de mercado e a de refeicao desenham o mesmo circulo. O
+// TypeScript so entrega o valor do enum no data-cat, nenhum codigo de cor passa pelo
+// componente.
+[data-cat] {
+  background: var(--cat-outro-soft);
+}
+
+[data-cat='PROTEINA'] {
+  background: var(--cat-prot-soft);
+}
+
+[data-cat='HORTIFRUTI'] {
+  background: var(--cat-horti-soft);
+}
+
+[data-cat='CARBOIDRATO'] {
+  background: var(--cat-carb-soft);
+}
+
+[data-cat='LATICINIO'] {
+  background: var(--cat-lat-soft);
+}
+
+// Usada na fatia da barra de composicao e no quadradinho da legenda, onde o tom mais claro
+// nao daria para diferenciar uma categoria da outra. Funciona igual ao [data-cat]: o
+// TypeScript entrega so o valor do enum.
+[data-cat-forte] {
+  background: var(--cat-outro);
+}
+
+[data-cat-forte='PROTEINA'] {
+  background: var(--cat-prot);
+}
+
+[data-cat-forte='HORTIFRUTI'] {
+  background: var(--cat-horti);
+}
+
+[data-cat-forte='CARBOIDRATO'] {
+  background: var(--cat-carb);
+}
+
+[data-cat-forte='LATICINIO'] {
+  background: var(--cat-lat);
+}
+
+// E a classe .search do prototipo, com a lupa recuada a esquerda.
+.search {
+  position: relative;
+  margin: 0 var(--gap-page) var(--gap-stack);
+
+  input {
+    width: 100%;
+    // O campo e uma cavidade: as mesmas duas sombras do relevo, so que viradas para
+    // dentro. E o contrario do botao, e ja indica que ali se escreve.
+    border: 0;
+    background: var(--superficie);
+    box-shadow: var(--sh-afundado);
+    border-radius: var(--r-ctl);
+    padding: var(--pad-field);
+    padding-left: var(--ic-inset);
+    font-family: inherit;
+    font-size: var(--t-field);
+    font-weight: var(--w-body);
+    color: var(--text);
+
+    &::placeholder {
+      color: var(--faint);
+    }
+
+    &:focus {
+      outline: var(--sp-1) solid var(--green-soft);
+    }
+
+    // Mesma ideia do .fld: o brilho e so visual e quem indica o foco e o anel verde.
+    &:focus-visible {
+      outline: var(--sp-1) solid var(--green-soft);
+      box-shadow: var(--sh-afundado), 0 0 0 var(--bd-focus) var(--green);
+    }
+  }
+
+  .ic {
+    position: absolute;
+    left: var(--sp-5);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: var(--t-ic);
+    pointer-events: none;
+  }
+}
+
+// Serve para a tela nunca ficar em branco enquanto a API responde.
+.carregando {
+  text-align: center;
+  font-size: var(--t-empty-p);
+  font-weight: var(--w-body);
+  color: var(--muted);
+  padding: var(--sp-4) 0;
+}
+
+// A area e fixa na tela e limitada a largura da coluna do app, para o botao acompanhar o
+// menu em telas grandes em vez de colar na borda do monitor.
+.fab-area {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: var(--app-max);
+  margin: 0 auto;
+  z-index: var(--z-fab);
+  pointer-events: none;
+}
+
+.fab {
+  position: absolute;
+  right: var(--gap-page);
+  // Acompanha o menu, que cresce junto com a area segura do celular.
+  bottom: calc(var(--fab-bottom) + var(--safe-b));
+  display: grid;
+  place-items: center;
+  // Ver o --fab-nudge-b. Sem isso o "+" fica visualmente abaixo do centro do circulo.
+  padding-bottom: var(--fab-nudge-b);
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border: 0;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: var(--sh-fab);
+  color: var(--on-cor);
+  font-family: inherit;
+  font-size: var(--t-fab);
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+
+  // Afunda como qualquer outro controle. Encolher com scale() afastava o circulo do dedo no
+  // momento do toque.
+  &:active {
+    box-shadow: var(--sh-verde-pressionado);
+  }
+}
+
+// A area do botao e fixa na tela, mas em tela larga a coluna descola do fundo. Sem recuar
+// junto, o botao desce e fica desalinhado do menu que ele deveria acompanhar.
+@media (min-width: 480px) {
+  .fab-area {
+    inset: var(--gap-page) 0;
+  }
+}
+
+.foot-note {
+  text-align: center;
+  font-size: var(--t-nav);
+  font-weight: var(--w-medium);
+  color: var(--faint);
+  padding: var(--sp-2) var(--gap-page) var(--gap-card);
+
+  a {
+    color: var(--green);
+    font-weight: var(--w-btn);
+    text-decoration: none;
+  }
+}

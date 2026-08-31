@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>MealMath</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Descubra o custo real de cada refeição a partir dos preços do mercado.">
+  <meta name="theme-color" content="#F5F5F5">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Deixa o app instalavel. Com o display standalone ele abre sem a barra de endereco,
+       que e o que mais entrega que e um site rodando no celular. -->
+  <link rel="manifest" href="/manifest.webmanifest">
+
+  <!-- O iPhone ignora o manifest e le essas metas. Sem o apple-touch-icon ele usa um print
+       da pagina como icone na tela de inicio. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="MealMath">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <!-- A fonte e servida pelo proprio projeto (styles/_fontes.scss), assim nao preciso de
+       conexao externa antes do primeiro texto e a tipografia continua funcionando offline.
+       No preload coloquei so os dois pesos que aparecem na primeira tela, os outros o
+       navegador busca quando encontra o texto que usa eles. -->
+  <link rel="preload" href="/fonts/plus-jakarta-sans-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/plus-jakarta-sans-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+  <app-root></app-root>
+
+  <!-- O Chrome dispara o beforeinstallprompt assim que decide que a pagina pode ser
+       instalada, e isso costuma acontecer antes do Angular iniciar. Um listener registrado
+       so la dentro perderia o evento, e ele nao acontece de novo na mesma carga da pagina.
+       Por isso capturo aqui direto no HTML e depois aviso o componente. -->
+  <script>
+    window.__mealmathInstalacao = null;
+    window.addEventListener('beforeinstallprompt', function (evento) {
+      evento.preventDefault();
+      window.__mealmathInstalacao = evento;
+      window.dispatchEvent(new Event('mealmath:instalavel'));
+    });
+  </script>
+</body>
+</html>
