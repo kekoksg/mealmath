@@ -56,9 +56,10 @@ fracionado — a conta que inviabiliza o controle manual — fica por conta do s
 |---|---|---|
 | JDK | 17 ou superior | `java -version` |
 | Node.js | 20 ou superior | `node -v` |
-| PostgreSQL | 14 ou superior | `psql --version` |
+| PostgreSQL **ou** Docker | 14 ou superior · qualquer versão recente | `psql --version` · `docker -v` |
 
-O Maven **não** precisa estar instalado — o projeto usa o wrapper (`./mvnw`).
+O Maven **não** precisa estar instalado — o projeto usa o wrapper (`./mvnw`). O PostgreSQL só é
+necessário se você não for usar o `docker-compose.yml` que acompanha o projeto (passo 3.3).
 
 <details>
 <summary>Instalar no Ubuntu / Pop!_OS / Debian</summary>
@@ -87,16 +88,7 @@ brew install openjdk@17 node@20 postgresql@16 && brew services start postgresql@
 git clone https://github.com/kekoksg/mealmath.git && cd mealmath
 ```
 
-### 3.2 Crie o banco
-
-```bash
-sudo -u postgres psql -c "CREATE DATABASE mealmath_db;"
-```
-
-As tabelas são criadas sozinhas no primeiro boot (`ddl-auto=update`) — não há script de
-schema para rodar à mão.
-
-### 3.3 Configure os segredos
+### 3.2 Configure os segredos
 
 Nenhuma credencial está versionada. Copie o exemplo:
 
@@ -110,9 +102,47 @@ Gere uma chave JWT — precisa ter no mínimo 32 bytes, senão a aplicação rec
 openssl rand -base64 48
 ```
 
-Abra `backend/mealmath-api/.env` e preencha `DB_SENHA` com a senha do seu PostgreSQL e
-`APP_JWT_SEGREDO` com a chave gerada. Os detalhes de cada variável estão na
-[seção 8](#8-configuração).
+Abra `backend/mealmath-api/.env` e preencha `DB_SENHA` e `APP_JWT_SEGREDO` com a chave gerada. Os
+detalhes de cada variável estão na [seção 8](#8-configuração).
+
+Se você for subir o banco por Docker no passo seguinte, `DB_SENHA` é a senha que o container vai
+passar a usar — escolha qualquer uma. Se já tem um PostgreSQL instalado, é a senha dele.
+
+### 3.3 Suba o banco
+
+Com Docker, sem instalar PostgreSQL na máquina:
+
+```bash
+set -a; . backend/mealmath-api/.env; set +a
+docker compose up -d --wait
+```
+
+O `docker-compose.yml` sobe só o PostgreSQL, já com o banco `mealmath_db` criado, lendo as
+credenciais do mesmo `.env` que a aplicação usa. O `--wait` só devolve o terminal quando o
+healthcheck passa, então o passo seguinte não esbarra em banco ainda subindo.
+
+Se a `5432` já estiver ocupada por outro PostgreSQL, suba em outra porta e ajuste o `DB_URL` no
+`.env`:
+
+```bash
+PORTA_POSTGRES=5433 docker compose up -d --wait
+```
+
+> Use o **Compose v2** (`docker compose`, sem hífen). O `docker-compose` v1 distribuído pelo apt no
+> Ubuntu 22.04 falha com `unexpected keyword argument 'chunked'` — é um conflito entre o pacote
+> Python dele e o `urllib3` do sistema, não um problema deste arquivo. Se for o seu caso, instale o
+> plugin v2 em `~/.docker/cli-plugins/docker-compose`, sem precisar de `sudo`.
+
+<details>
+<summary>Ou com PostgreSQL instalado na máquina</summary>
+
+```bash
+sudo -u postgres psql -c "CREATE DATABASE mealmath_db;"
+```
+</details>
+
+As tabelas são criadas sozinhas no primeiro boot (`ddl-auto=update`) — não há script de
+schema para rodar à mão.
 
 ### 3.4 Instale as dependências do front
 
@@ -332,7 +362,7 @@ token em `8h`, SSR na `4000` (ou `PORT`).
 <details>
 <summary><b>A aplicação não sobe: <code>Could not resolve placeholder 'DB_SENHA'</code></b></summary>
 
-O `.env` não existe ou não tem `DB_SENHA`. Refaça o [passo 3.3](#33-configure-os-segredos).
+O `.env` não existe ou não tem `DB_SENHA`. Refaça o [passo 3.2](#32-configure-os-segredos).
 É proposital: a aplicação prefere falhar com erro claro a subir com uma senha padrão.
 </details>
 
@@ -357,11 +387,22 @@ continua no banco, preservando o custo histórico do diário.
 <details>
 <summary><b><code>Connection refused</code> ao PostgreSQL</b></summary>
 
-O serviço não está rodando ou o banco não existe:
+O serviço não está rodando ou o banco não existe.
+
+Se você subiu por Docker, confira se o container está de pé e saudável:
+
+```bash
+docker ps --filter name=mealmath-postgres
+```
+
+Se instalou o PostgreSQL na máquina:
 
 ```bash
 sudo systemctl status postgresql && sudo -u postgres psql -c "\l" | grep mealmath
 ```
+
+Vale checar também se o `DB_URL` do `.env` aponta para a porta certa — subir o container com
+`PORTA_POSTGRES` diferente e esquecer de ajustar a URL dá exatamente esse erro.
 </details>
 
 <details>
