@@ -132,6 +132,112 @@ Detalhes que não mudam a estrutura acima, mas respondem "por que assim":
 - A interface é desenhada para 390 px de largura e escala para cima, não o contrário.
 - SSR em Express e service worker registrado: a aplicação é instalável.
 
+## Modelo de dados
+
+```mermaid
+erDiagram
+    USUARIO ||--o{ ITEM_MERCADO : cadastra
+    USUARIO ||--o{ REFEICAO : monta
+    USUARIO ||--o{ REGISTRO_DIARIO : registra
+    USUARIO ||--o| META_ORCAMENTO : define
+    ITEM_MERCADO ||--o{ HISTORICO_PRECO : acumula
+    REFEICAO ||--o{ ITEM_REFEICAO : contem
+    ITEM_MERCADO ||--o{ ITEM_REFEICAO : "usado em"
+    REFEICAO |o--o{ REGISTRO_DIARIO : origina
+    REGISTRO_DIARIO ||--o{ ITEM_REGISTRO : contem
+    ITEM_MERCADO |o--o{ ITEM_REGISTRO : "usado em"
+
+    USUARIO {
+        bigint id PK
+        varchar nome
+        varchar email UK
+        varchar senha_hash
+        timestamptz criado_em
+    }
+    ITEM_MERCADO {
+        bigint id PK
+        bigint usuario_id FK
+        varchar nome
+        varchar categoria
+        numeric preco
+        numeric quantidade_embalagem
+        varchar unidade
+        boolean ativo
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+    HISTORICO_PRECO {
+        bigint id PK
+        bigint item_mercado_id FK
+        numeric preco
+        numeric quantidade_embalagem
+        varchar unidade
+        timestamptz substituido_em
+    }
+    REFEICAO {
+        bigint id PK
+        bigint usuario_id FK
+        varchar titulo
+        varchar icone
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+    ITEM_REFEICAO {
+        bigint id PK
+        bigint refeicao_id FK
+        bigint item_mercado_id FK
+        numeric quantidade_consumida
+        varchar unidade
+    }
+    REGISTRO_DIARIO {
+        bigint id PK
+        bigint usuario_id FK
+        bigint refeicao_origem_id FK "nulo"
+        date data
+        varchar titulo
+        varchar icone
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+    ITEM_REGISTRO {
+        bigint id PK
+        bigint registro_diario_id FK
+        bigint item_mercado_id FK "nulo"
+        varchar nome_item
+        numeric quantidade_consumida
+        varchar unidade
+        numeric preco_no_consumo "nulo"
+        numeric quantidade_embalagem_no_consumo "nulo"
+        varchar unidade_embalagem_no_consumo "nulo"
+    }
+    META_ORCAMENTO {
+        bigint id PK
+        bigint usuario_id FK "único"
+        numeric valor
+        varchar periodo
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+```
+
+Quatro pontos do modelo que não são óbvios pelo desenho:
+
+`ITEM_REGISTRO` repete `nome_item`, `quantidade_consumida` e `unidade` em vez de só apontar para
+`ITEM_MERCADO`. É a regra Biblioteca ≠ Diário escrita no schema: o dia consumido não pode mudar
+porque o modelo mudou. As colunas `*_no_consumo` congelam preço, embalagem e unidade no momento do
+registro, e são elas que sustentam o custo histórico.
+
+`ITEM_REGISTRO.item_mercado_id` e `REGISTRO_DIARIO.refeicao_origem_id` aceitam nulo de propósito.
+O vínculo com a origem é conveniência, não dependência — apagar um item de mercado ou uma refeição
+da biblioteca não pode invalidar o que já foi consumido.
+
+`HISTORICO_PRECO` guarda embalagem e unidade junto com o preço, não só o preço. Trocar o pacote de
+1 kg por um de 500 g muda o custo unitário tanto quanto mudar o valor, então registrar só o preço
+perderia metade da variação.
+
+`META_ORCAMENTO.usuario_id` é único: uma meta por usuário. É por isso que a rota é
+`/meta-orcamento`, sem id no caminho.
+
 ## A API
 
 Base `http://localhost:8082`. Tudo exige `Authorization: Bearer <token>`, exceto `/auth/**`.
@@ -249,10 +355,6 @@ cd backend/mealmath-api && ./mvnw test          # 231 testes
 
 ```bash
 cd frontend && npx ng test --watch=false        # 121 testes
-```
-
-```bash
-cd frontend && npm run contraste                # contraste de cor
 ```
 
 ---
