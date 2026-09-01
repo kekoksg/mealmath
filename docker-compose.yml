@@ -1,0 +1,42 @@
+# Sobe apenas o PostgreSQL. A API e o front continuam rodando na maquina, porque em
+# desenvolvimento o ciclo de recompilar e reiniciar container custa mais do que ajuda.
+#
+# As credenciais vem do mesmo .env que a aplicacao le, para nao existirem dois lugares
+# com a mesma senha e eles divergirem:
+#
+#   set -a; . backend/mealmath-api/.env; set +a
+#   docker compose up -d --wait
+#
+# Use o Compose v2 ("docker compose", sem hifen). O docker-compose v1 do apt no Ubuntu 22.04
+# quebra com "unexpected keyword argument 'chunked'", que e um conflito entre o pacote Python
+# dele e o urllib3 do sistema — nao tem relacao com este arquivo.
+#
+# Se voce ja tem um PostgreSQL na 5432, suba com outra porta no host:
+#
+#   PORTA_POSTGRES=5433 docker compose up -d --wait
+#
+# e ajuste DB_URL no .env para apontar para ela.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mealmath-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mealmath_db}
+      POSTGRES_USER: ${DB_USUARIO:-postgres}
+      POSTGRES_PASSWORD: ${DB_SENHA:?defina DB_SENHA — carregue o .env antes de subir}
+    ports:
+      - "${PORTA_POSTGRES:-5432}:5432"
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+    healthcheck:
+      # A API falha no boot se o banco ainda nao aceita conexao. Com o healthcheck, o
+      # "up -d --wait" so retorna quando da para conectar de verdade.
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USUARIO:-postgres} -d ${POSTGRES_DB:-mealmath_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  dados-postgres:
