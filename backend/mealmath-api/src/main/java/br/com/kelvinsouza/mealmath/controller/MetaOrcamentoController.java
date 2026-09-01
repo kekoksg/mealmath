@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Meta de orcamento (RF010). Como cada usuario tem no maximo uma meta, a rota nao leva id: o dono
+ * Meta de orcamento (RF009). Como cada usuario tem no maximo uma meta, a rota nao leva id: o dono
  * sai do token e a URL e a mesma para todo mundo.
  */
 @RestController

@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Diario de consumo (RF009). E a unica fonte do custo consolidado do dashboard (RF006). */
+/** Diario de consumo (RF008). E a unica fonte do custo consolidado do dashboard (RF006). */
 public interface RegistroDiarioRepository extends JpaRepository<RegistroDiario, Long> {
 
     @EntityGraph(attributePaths = {"itens", "itens.itemMercado"})

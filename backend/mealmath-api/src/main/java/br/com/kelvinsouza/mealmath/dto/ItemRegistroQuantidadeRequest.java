@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 /**
- * Ajuste da quantidade de um item so naquele dia (RF009).
+ * Ajuste da quantidade de um item so naquele dia (RF008).
  *
  * A alteracao mexe apenas na linha do registro diario. O modelo da biblioteca e os outros dias
  * continuam iguais.

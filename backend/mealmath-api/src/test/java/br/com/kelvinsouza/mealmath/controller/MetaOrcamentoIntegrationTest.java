@@ -23,11 +23,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** Testa o CRUD da meta de orcamento (RF010), subindo a aplicacao de verdade. */
+/** Testa o CRUD da meta de orcamento (RF009), subindo a aplicacao de verdade. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@DisplayName("Meta de orçamento — CRUD (RF010)")
+@DisplayName("Meta de orçamento — CRUD (RF009)")
 class MetaOrcamentoIntegrationTest {
 
     private static final String SENHA = "senha-forte-123";
@@ -102,7 +102,7 @@ class MetaOrcamentoIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Definição (RF010)")
+    @DisplayName("Definição (RF009)")
     class Definicao {
 
         @Test
@@ -165,7 +165,7 @@ class MetaOrcamentoIntegrationTest {
         }
 
         @Test
-        @DisplayName("Valor zero é barrado na validação, com erro no campo (RF010)")
+        @DisplayName("Valor zero é barrado na validação, com erro no campo (RF009)")
         void valorZeroEhInvalido() throws Exception {
             mockMvc.perform(
                             put("/meta-orcamento")
@@ -179,7 +179,7 @@ class MetaOrcamentoIntegrationTest {
         }
 
         @Test
-        @DisplayName("Valor negativo é barrado na validação (RF010)")
+        @DisplayName("Valor negativo é barrado na validação (RF009)")
         void valorNegativoEhInvalido() throws Exception {
             mockMvc.perform(
                             put("/meta-orcamento")

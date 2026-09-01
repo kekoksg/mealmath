@@ -59,12 +59,12 @@ interface ResumoPerfil {
   readonly diasComRegistro: number;
   readonly totalDeDias: number;
   readonly altasDePreco: number;
-  /** Fica null quando nao tem meta definida, porque a API responde 204 (RF010). */
+  /** Fica null quando nao tem meta definida, porque a API responde 204 (RF009). */
   readonly meta: MetaOrcamentoResponse | null;
 }
 
 /**
- * Tela da conta do usuario e da meta de orcamento (RF010).
+ * Tela da conta do usuario e da meta de orcamento (RF009).
  *
  * Nome e e-mail saem do token e aparecem na hora. Os numeros dependem da API e ficam num bloco
  * separado, com carregamento e erro proprios, para a tela nunca ficar em branco.

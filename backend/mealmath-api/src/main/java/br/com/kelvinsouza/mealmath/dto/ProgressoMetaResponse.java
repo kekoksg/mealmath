@@ -4,7 +4,7 @@ import br.com.kelvinsouza.mealmath.domain.PeriodoMeta;
 import java.math.BigDecimal;
 
 /**
- * Progresso do gasto em cima da meta de orcamento (RF006 e RF010).
+ * Progresso do gasto em cima da meta de orcamento (RF006 e RF009).
  *
  * O valorNoPeriodo e a meta rateada para o tamanho da janela: uma meta mensal de R$ 450,00 vista
  * em 7 dias vale R$ 105,00. Comparar o gasto da semana com a meta do mes daria sempre "dentro da

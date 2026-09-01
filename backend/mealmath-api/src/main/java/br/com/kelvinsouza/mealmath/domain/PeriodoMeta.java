@@ -1,6 +1,6 @@
 package br.com.kelvinsouza.mealmath.domain;
 
-/** Periodo de referencia da meta de orcamento (RF010). */
+/** Periodo de referencia da meta de orcamento (RF009). */
 public enum PeriodoMeta {
 
     SEMANAL(7),

@@ -72,7 +72,7 @@ interface Variacao {
 }
 
 /**
- * Tela do custo consolidado por periodo (RF006), com o progresso da meta (RF010).
+ * Tela do custo consolidado por periodo (RF006), com o progresso da meta (RF009).
  *
  * Os numeros ja chegam calculados do backend; a tela so formata, e e aqui que o arredondamento
  * acontece.

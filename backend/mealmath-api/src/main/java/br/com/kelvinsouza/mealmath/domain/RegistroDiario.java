@@ -25,7 +25,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * Refeicao que o usuario realmente consumiu numa data (RF009). E daqui que sai o custo do
+ * Refeicao que o usuario realmente consumiu numa data (RF008). E daqui que sai o custo do
  * dashboard (RF006); a biblioteca nunca entra na soma.
  *
  * Titulo, icone e itens sao copiados na criacao, nao sao referencias ao modelo. O refeicaoOrigem

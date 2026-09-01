@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 /**
- * Dados de entrada para definir a meta de orcamento (RF010). Serve para criar e para atualizar,
+ * Dados de entrada para definir a meta de orcamento (RF009). Serve para criar e para atualizar,
  * porque a meta e unica por usuario e o PUT sobrescreve tudo.
  *
  * O @Positive pega o caso de valor zero ou negativo antes de salvar, e nao na hora de calcular o

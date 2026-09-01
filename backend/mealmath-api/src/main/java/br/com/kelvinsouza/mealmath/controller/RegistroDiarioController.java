@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Diario de consumo (RF009). Rota protegida, o dono sai do token. */
+/** Diario de consumo (RF008). Rota protegida, o dono sai do token. */
 @RestController
 @RequestMapping("/registros-diarios")
 public class RegistroDiarioController {

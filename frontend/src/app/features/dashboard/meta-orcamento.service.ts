@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import { MetaOrcamentoRequest, MetaOrcamentoResponse } from './dashboard.model';
 
 /**
- * Chama a rota /meta-orcamento (RF010). O dashboard ja recebe o progresso calculado dentro da
+ * Chama a rota /meta-orcamento (RF009). O dashboard ja recebe o progresso calculado dentro da
  * resposta dele, entao quem chama aqui esta gravando e nao consultando.
  */
 @Injectable({ providedIn: 'root' })

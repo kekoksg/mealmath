@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Diario de consumo (RF009): o que foi realmente comido em cada dia. E a unica fonte do custo
+ * Diario de consumo (RF008): o que foi realmente comido em cada dia. E a unica fonte do custo
  * consolidado do periodo (RF006).
  *
  * Em nenhum ponto daqui um ItemRefeicao vira item do diario. O que se copia sao os valores (nome,
@@ -61,7 +61,7 @@ public class RegistroDiarioService {
         this.auditoria = auditoria;
     }
 
-    /** Joga uma refeicao da biblioteca em uma data, copiando os itens dela (RF009). */
+    /** Joga uma refeicao da biblioteca em uma data, copiando os itens dela (RF008). */
     @Transactional
     public RegistroDiarioResponse registrar(RegistroDiarioRequest requisicao) {
         Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
@@ -117,7 +117,7 @@ public class RegistroDiarioService {
     }
 
     /**
-     * Muda a quantidade de um item so nesse registro (RF009).
+     * Muda a quantidade de um item so nesse registro (RF008).
      *
      * Procuro o item dentro do registro que ja foi carregado. Isso garante que ele e mesmo desse
      * registro e ainda evita uma segunda consulta no banco.
@@ -160,7 +160,7 @@ public class RegistroDiarioService {
     }
 
     /**
-     * Repete no dia informado tudo o que foi registrado no dia anterior (RF009).
+     * Repete no dia informado tudo o que foi registrado no dia anterior (RF008).
      *
      * Os registros sao copiados do jeito que ficaram ontem, ja com os ajustes de quantidade que o
      * usuario fez. Repetir o dia e repetir o que foi comido e nao o que o modelo diz. Cada linha

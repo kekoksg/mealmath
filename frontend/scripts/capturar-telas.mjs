@@ -109,12 +109,12 @@ const TELAS = [
     passos: [clicar('.fab'), clicarTexto('Adicionar item do mercado'), clicar('.pick')],
   },
 
-  // RF009 — registrar consumo no dia, ver a composição do registro e navegar por data.
+  // RF008 — registrar consumo no dia, ver a composição do registro e navegar por data.
   { arquivo: '13-diario-adicionar', rota: '/diario', passos: [clicar('.fab')] },
   { arquivo: '14-diario-registro', rota: '/diario', passos: [clicar('.linha')] },
   { arquivo: '15-diario-calendario', rota: '/diario', passos: [clicar('.rng')] },
 
-  // RF010 e conta.
+  // RF009 e conta.
   { arquivo: '16-perfil-editar', rota: '/perfil', passos: [clicarTexto('Editar perfil')] },
   { arquivo: '17-perfil-meta', rota: '/perfil', passos: [clicarTexto('Meta de orçamento')] },
   { arquivo: '18-perfil-senha', rota: '/perfil', passos: [clicarTexto('Alterar a senha')] },

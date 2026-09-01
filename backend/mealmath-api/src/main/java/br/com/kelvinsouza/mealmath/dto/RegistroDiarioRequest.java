@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 /**
- * Registra que uma refeicao da biblioteca foi consumida numa data (RF009).
+ * Registra que uma refeicao da biblioteca foi consumida numa data (RF008).
  *
  * O corpo aponta para o modelo, mas o que e gravado e uma copia dele: titulo, icone e itens passam
  * a viver dentro do registro. Ajustar o registro depois nao mexe na biblioteca.

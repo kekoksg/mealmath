@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Meta de orcamento atual do usuario (RF010).
+ * Meta de orcamento atual do usuario (RF009).
  *
  * Quando nao existe meta, o endpoint devolve 204 sem corpo em vez de um record zerado. Assim o
  * dashboard consegue diferenciar "meta nao definida", que esconde a barra e oferece o botao de

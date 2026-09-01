@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Refeicao que foi realmente consumida em um dia (RF009). E daqui, e nao da biblioteca, que sai o
+ * Refeicao que foi realmente consumida em um dia (RF008). E daqui, e nao da biblioteca, que sai o
  * custo do periodo.
  *
  * O refeicaoOrigemId serve so de rastreio e fica nulo se o modelo foi apagado da biblioteca, sem

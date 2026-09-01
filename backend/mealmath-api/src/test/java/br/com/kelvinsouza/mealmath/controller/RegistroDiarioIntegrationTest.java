@@ -36,11 +36,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** Testa o diario de consumo (RF009) e a separacao entre a biblioteca e o diario. */
+/** Testa o diario de consumo (RF008) e a separacao entre a biblioteca e o diario. */
 @SpringBootTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 @AutoConfigureMockMvc
 @Transactional
-@DisplayName("Diário — registro de consumo (RF009)")
+@DisplayName("Diário — registro de consumo (RF008)")
 class RegistroDiarioIntegrationTest {
 
     private static final String SENHA = "senha-forte-123";

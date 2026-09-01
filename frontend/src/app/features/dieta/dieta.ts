@@ -132,7 +132,7 @@ interface ItemRascunho {
 
 /**
  * Serve as duas secoes do menu, decididas pelo campo aba: a biblioteca de refeicoes modelo
- * (RF003) e o diario de consumo (RF009). O custo de ambas vem calculado do backend (RF005).
+ * (RF003) e o diario de consumo (RF008). O custo de ambas vem calculado do backend (RF005).
  *
  * As duas nunca se misturam. Na biblioteca o que se edita e o modelo; no diario, o
  * RegistroDiario daquela data, que tem copia propria dos itens. Ajustar a quantidade de um

@@ -7,7 +7,7 @@ import { UnidadeBase } from '../../core/dominio/unidade';
 /** Janela consolidada, em dias corridos ate hoje. Nao e o mes do calendario. */
 export type PeriodoDashboard = 'DIA' | 'SEMANA' | 'MES';
 
-/** Periodo do limite de gasto cadastrado (RF010). E independente do periodo da janela. */
+/** Periodo do limite de gasto cadastrado (RF009). E independente do periodo da janela. */
 export type PeriodoMeta = 'SEMANAL' | 'MENSAL';
 
 export interface ComparativoPeriodoResponse {

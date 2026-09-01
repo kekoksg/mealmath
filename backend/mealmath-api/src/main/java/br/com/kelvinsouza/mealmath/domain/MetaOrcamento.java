@@ -21,7 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * Limite de gasto com alimentacao em um periodo (RF010).
+ * Limite de gasto com alimentacao em um periodo (RF009).
  *
  * Cada usuario tem no maximo uma meta, garantido pela chave unica. O periodo e um campo dela e nao
  * parte da identidade, entao trocar de MENSAL para SEMANAL atualiza a meta que ja existe em vez de
@@ -50,7 +50,7 @@ public class MetaOrcamento {
     @Column(nullable = false, length = 10)
     private PeriodoMeta periodo;
 
-    /** Valor limite do gasto. Tem que ser maior que zero (RF010). */
+    /** Valor limite do gasto. Tem que ser maior que zero (RF009). */
     @NotNull
     @Positive
     @Column(nullable = false, precision = 12, scale = 2)

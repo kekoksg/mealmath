@@ -242,7 +242,7 @@ public class SeedDesenvolvimento implements ApplicationRunner {
     }
 
         /**
-         * Cria no diario o que esta no PLANO_DO_DIA (RF009), de hoje para tras, e devolve quantos
+         * Cria no diario o que esta no PLANO_DO_DIA (RF008), de hoje para tras, e devolve quantos
          * registros criou.
          *
          * Cada registro recebe copia do titulo, do icone e dos itens, nunca as linhas da biblioteca.

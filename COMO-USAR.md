@@ -88,7 +88,7 @@ brew install openjdk@17 node@20 postgresql@16 && brew services start postgresql@
 git clone https://github.com/kekoksg/mealmath.git && cd mealmath
 ```
 
-### 3.2 Configure os segredos
+### 3.2 Configure as credenciais
 
 Nenhuma credencial está versionada. Copie o exemplo:
 
@@ -327,7 +327,7 @@ cd backend/mealmath-api && ./mvnw test
 cd frontend && npx ng test --watch=false
 ```
 
-**216 testes no backend** — a conversão de unidades caso a caso, os testes de integração
+**231 testes no backend** — a conversão de unidades caso a caso, os testes de integração
 de cada controller (incluindo tentativas de acessar dado de outro usuário) e as
 invariantes de borda: divisão por zero, grandeza incompatível (`g` de um item vendido em
 `L`), item sem preço, período anterior vazio, cópia profunda no diário.
@@ -362,7 +362,7 @@ token em `8h`, SSR na `4000` (ou `PORT`).
 <details>
 <summary><b>A aplicação não sobe: <code>Could not resolve placeholder 'DB_SENHA'</code></b></summary>
 
-O `.env` não existe ou não tem `DB_SENHA`. Refaça o [passo 3.2](#32-configure-os-segredos).
+O `.env` não existe ou não tem `DB_SENHA`. Refaça o [passo 3.2](#32-configure-as-credenciais).
 É proposital: a aplicação prefere falhar com erro claro a subir com uma senha padrão.
 </details>
 

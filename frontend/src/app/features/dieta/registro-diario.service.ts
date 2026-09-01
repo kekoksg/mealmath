@@ -9,7 +9,7 @@ import {
   RegistroDiarioResponse,
 } from './registro-diario.model';
 
-/** Chama a rota /registros-diarios, o que foi comido de verdade em cada dia (RF009). */
+/** Chama a rota /registros-diarios, o que foi comido de verdade em cada dia (RF008). */
 @Injectable({ providedIn: 'root' })
 export class RegistroDiarioService {
   private readonly http = inject(HttpClient);

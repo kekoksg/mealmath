@@ -357,7 +357,7 @@ class DashboardIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Progresso da meta de orçamento (RF010)")
+    @DisplayName("Progresso da meta de orçamento (RF009)")
     class Meta {
         @Test
         @DisplayName(

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * CRUD da meta de orcamento (RF010). O dashboard (RF006) usa ela para montar a barra de progresso.
+ * CRUD da meta de orcamento (RF009). O dashboard (RF006) usa ela para montar a barra de progresso.
  *
  * A meta e unica por usuario e sempre buscada pelo id que vem do token. Nenhum metodo daqui recebe
  * id de meta ou de usuario por parametro, entao nao tem como alguem trocar o id na URL e chegar na
@@ -48,7 +48,7 @@ public class MetaOrcamentoService {
 
     /**
      * Como so existe uma meta por usuario, definir sobrescreve a que ja existia em vez de criar
-     * outra linha (RF010). Trocar o periodo tambem e so uma atualizacao: nao da para ter uma meta
+     * outra linha (RF009). Trocar o periodo tambem e so uma atualizacao: nao da para ter uma meta
      * semanal e uma mensal ao mesmo tempo.
      */
     @Transactional
