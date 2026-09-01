@@ -5,7 +5,6 @@ import br.com.kelvinsouza.mealmath.domain.ItemMercado;
 import br.com.kelvinsouza.mealmath.domain.Usuario;
 import br.com.kelvinsouza.mealmath.domain.exception.ItemMercadoDuplicadoException;
 import br.com.kelvinsouza.mealmath.domain.exception.ItemMercadoEmUsoException;
-import br.com.kelvinsouza.mealmath.domain.exception.RecursoNaoEncontradoException;
 import br.com.kelvinsouza.mealmath.dto.HistoricoPrecoResponse;
 import br.com.kelvinsouza.mealmath.dto.ItemMercadoRequest;
 import br.com.kelvinsouza.mealmath.dto.ItemMercadoResponse;
@@ -14,6 +13,7 @@ import br.com.kelvinsouza.mealmath.repository.ItemMercadoRepository;
 import br.com.kelvinsouza.mealmath.repository.ItemRefeicaoRepository;
 import br.com.kelvinsouza.mealmath.repository.ItemRegistroRepository;
 import br.com.kelvinsouza.mealmath.repository.UsuarioRepository;
+import br.com.kelvinsouza.mealmath.security.AuditoriaDeAcesso;
 import br.com.kelvinsouza.mealmath.security.UsuarioAutenticadoProvider;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -36,6 +36,7 @@ public class ItemMercadoService {
     private final UsuarioRepository usuarioRepository;
     private final CalculadoraCustoService calculadora;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final AuditoriaDeAcesso auditoria;
 
     public ItemMercadoService(
             ItemMercadoRepository itemMercadoRepository,
@@ -44,7 +45,8 @@ public class ItemMercadoService {
             ItemRegistroRepository itemRegistroRepository,
             UsuarioRepository usuarioRepository,
             CalculadoraCustoService calculadora,
-            UsuarioAutenticadoProvider usuarioAutenticado) {
+            UsuarioAutenticadoProvider usuarioAutenticado,
+            AuditoriaDeAcesso auditoria) {
         this.itemMercadoRepository = itemMercadoRepository;
         this.historicoPrecoRepository = historicoPrecoRepository;
         this.itemRefeicaoRepository = itemRefeicaoRepository;
@@ -52,6 +54,7 @@ public class ItemMercadoService {
         this.usuarioRepository = usuarioRepository;
         this.calculadora = calculadora;
         this.usuarioAutenticado = usuarioAutenticado;
+        this.auditoria = auditoria;
     }
 
     @Transactional
@@ -190,10 +193,20 @@ public class ItemMercadoService {
                         itemId, usuarioId);
     }
 
+    /**
+     * Ponto unico de leitura escopada por usuario. Quando nao acha, a auditoria e quem decide se
+     * aquilo foi um id inexistente ou uma tentativa de ler item de outra conta. A resposta e 404 nos
+     * dois casos, a diferenca fica so no log.
+     */
     private ItemMercado buscarDoUsuario(Long id) {
-        return itemMercadoRepository
-                .findByIdAndUsuarioId(id, usuarioAutenticado.idDoUsuarioAutenticado())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Item de mercado"));
+        Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
+
+        return auditoria.exigirDoUsuario(
+                itemMercadoRepository.findByIdAndUsuarioId(id, usuarioId),
+                "Item de mercado",
+                id,
+                usuarioId,
+                () -> itemMercadoRepository.existeDeOutroUsuario(id, usuarioId));
     }
 
     private ItemMercadoResponse montarResposta(ItemMercado item) {

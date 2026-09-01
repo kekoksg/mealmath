@@ -5,16 +5,17 @@ import br.com.kelvinsouza.mealmath.domain.ItemRegistro;
 import br.com.kelvinsouza.mealmath.domain.Refeicao;
 import br.com.kelvinsouza.mealmath.domain.RegistroDiario;
 import br.com.kelvinsouza.mealmath.domain.Usuario;
-import br.com.kelvinsouza.mealmath.domain.exception.RecursoNaoEncontradoException;
 import br.com.kelvinsouza.mealmath.domain.exception.RegraNegocioException;
 import br.com.kelvinsouza.mealmath.dto.DuplicarDiaAnteriorRequest;
 import br.com.kelvinsouza.mealmath.dto.ItemRegistroQuantidadeRequest;
 import br.com.kelvinsouza.mealmath.dto.ItemRegistroResponse;
 import br.com.kelvinsouza.mealmath.dto.RegistroDiarioRequest;
 import br.com.kelvinsouza.mealmath.dto.RegistroDiarioResponse;
+import br.com.kelvinsouza.mealmath.repository.ItemRegistroRepository;
 import br.com.kelvinsouza.mealmath.repository.RefeicaoRepository;
 import br.com.kelvinsouza.mealmath.repository.RegistroDiarioRepository;
 import br.com.kelvinsouza.mealmath.repository.UsuarioRepository;
+import br.com.kelvinsouza.mealmath.security.AuditoriaDeAcesso;
 import br.com.kelvinsouza.mealmath.security.UsuarioAutenticadoProvider;
 import java.time.LocalDate;
 import java.util.List;
@@ -34,24 +35,30 @@ public class RegistroDiarioService {
 
     private final RegistroDiarioRepository registroDiarioRepository;
     private final RefeicaoRepository refeicaoRepository;
+    private final ItemRegistroRepository itemRegistroRepository;
     private final UsuarioRepository usuarioRepository;
     private final CalculadoraCustoService calculadora;
     private final ConversorUnidadeService conversor;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final AuditoriaDeAcesso auditoria;
 
     public RegistroDiarioService(
             RegistroDiarioRepository registroDiarioRepository,
             RefeicaoRepository refeicaoRepository,
+            ItemRegistroRepository itemRegistroRepository,
             UsuarioRepository usuarioRepository,
             CalculadoraCustoService calculadora,
             ConversorUnidadeService conversor,
-            UsuarioAutenticadoProvider usuarioAutenticado) {
+            UsuarioAutenticadoProvider usuarioAutenticado,
+            AuditoriaDeAcesso auditoria) {
         this.registroDiarioRepository = registroDiarioRepository;
         this.refeicaoRepository = refeicaoRepository;
+        this.itemRegistroRepository = itemRegistroRepository;
         this.usuarioRepository = usuarioRepository;
         this.calculadora = calculadora;
         this.conversor = conversor;
         this.usuarioAutenticado = usuarioAutenticado;
+        this.auditoria = auditoria;
     }
 
     /** Joga uma refeicao da biblioteca em uma data, copiando os itens dela (RF009). */
@@ -59,10 +66,14 @@ public class RegistroDiarioService {
     public RegistroDiarioResponse registrar(RegistroDiarioRequest requisicao) {
         Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
 
+        Long refeicaoId = requisicao.refeicaoId();
         Refeicao modelo =
-                refeicaoRepository
-                        .findByIdAndUsuarioId(requisicao.refeicaoId(), usuarioId)
-                        .orElseThrow(() -> new RecursoNaoEncontradoException("Refeição"));
+                auditoria.exigirDoUsuario(
+                        refeicaoRepository.findByIdAndUsuarioId(refeicaoId, usuarioId),
+                        "Refeição",
+                        refeicaoId,
+                        usuarioId,
+                        () -> refeicaoRepository.existeDeOutroUsuario(refeicaoId, usuarioId));
 
         Usuario dono = usuarioRepository.getReferenceById(usuarioId);
         RegistroDiario registro = copiarDaBiblioteca(dono, requisicao.data(), modelo);
@@ -115,14 +126,20 @@ public class RegistroDiarioService {
     public RegistroDiarioResponse ajustarItem(
             Long registroId, Long itemId, ItemRegistroQuantidadeRequest requisicao) {
 
+        Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
         RegistroDiario registro = buscarDoUsuario(registroId);
 
+        // A busca e em memoria, no registro que ja foi carregado e ja e do usuario. Quando a linha
+        // nao esta la, so ai vale uma consulta para separar id inexistente de item do diario alheio.
         ItemRegistro item =
-                registro.getItens().stream()
-                        .filter(linha -> linha.getId().equals(itemId))
-                        .findFirst()
-                        .orElseThrow(
-                                () -> new RecursoNaoEncontradoException("Item do registro diário"));
+                auditoria.exigirDoUsuario(
+                        registro.getItens().stream()
+                                .filter(linha -> linha.getId().equals(itemId))
+                                .findFirst(),
+                        "Item do registro diário",
+                        itemId,
+                        usuarioId,
+                        () -> itemRegistroRepository.existeDeOutroUsuario(itemId, usuarioId));
 
         // Sem vinculo de preco nao tem embalagem para comparar a grandeza. Mesmo assim a quantidade
         // continua editavel, para o usuario conseguir arrumar o registro.
@@ -211,10 +228,20 @@ public class RegistroDiarioService {
         return copia;
     }
 
+    /**
+     * Ponto unico de leitura escopada por usuario. Quando nao acha, a auditoria e quem decide se
+     * aquilo foi um id inexistente ou uma tentativa de ler registro de outra conta. A resposta e 404
+     * nos dois casos, a diferenca fica so no log.
+     */
     private RegistroDiario buscarDoUsuario(Long id) {
-        return registroDiarioRepository
-                .findByIdAndUsuarioId(id, usuarioAutenticado.idDoUsuarioAutenticado())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Registro diário"));
+        Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
+
+        return auditoria.exigirDoUsuario(
+                registroDiarioRepository.findByIdAndUsuarioId(id, usuarioId),
+                "Registro diário",
+                id,
+                usuarioId,
+                () -> registroDiarioRepository.existeDeOutroUsuario(id, usuarioId));
     }
 
     private List<RegistroDiarioResponse> mapear(List<RegistroDiario> registros) {

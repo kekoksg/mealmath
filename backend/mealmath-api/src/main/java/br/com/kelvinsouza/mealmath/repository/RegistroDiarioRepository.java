@@ -42,6 +42,22 @@ public interface RegistroDiarioRepository extends JpaRepository<RegistroDiario, 
 
     boolean existsByUsuarioIdAndData(Long usuarioId, LocalDate data);
 
+    /**
+     * Diz se o id existe, mas em outra conta. Serve so para a AuditoriaDeAcesso registrar em WARN a
+     * tentativa de ler dado alheio, sem mudar a resposta, que continua 404 nos dois casos.
+     *
+     * E chamada apenas depois de o findByIdAndUsuarioId ja ter voltado vazio, entao nao encosta no
+     * caminho das requisicoes que dao certo.
+     */
+    @Query(
+            """
+            select count(r) > 0
+            from RegistroDiario r
+            where r.id = :id
+              and r.usuario.id <> :usuarioId
+            """)
+    boolean existeDeOutroUsuario(@Param("id") Long id, @Param("usuarioId") Long usuarioId);
+
         /**
          * Tira o vinculo de rastreio antes de apagar uma refeicao da biblioteca. Sem isso a chave
          * estrangeira impediria a exclusao, e apagar o registro junto misturaria biblioteca com diario.

@@ -5,7 +5,6 @@ import br.com.kelvinsouza.mealmath.domain.ItemRefeicao;
 import br.com.kelvinsouza.mealmath.domain.Refeicao;
 import br.com.kelvinsouza.mealmath.domain.Usuario;
 import br.com.kelvinsouza.mealmath.domain.exception.ItemMercadoInativoException;
-import br.com.kelvinsouza.mealmath.domain.exception.RecursoNaoEncontradoException;
 import br.com.kelvinsouza.mealmath.dto.ItemRefeicaoRequest;
 import br.com.kelvinsouza.mealmath.dto.ItemRefeicaoResponse;
 import br.com.kelvinsouza.mealmath.dto.RefeicaoRequest;
@@ -14,6 +13,7 @@ import br.com.kelvinsouza.mealmath.repository.ItemMercadoRepository;
 import br.com.kelvinsouza.mealmath.repository.RefeicaoRepository;
 import br.com.kelvinsouza.mealmath.repository.RegistroDiarioRepository;
 import br.com.kelvinsouza.mealmath.repository.UsuarioRepository;
+import br.com.kelvinsouza.mealmath.security.AuditoriaDeAcesso;
 import br.com.kelvinsouza.mealmath.security.UsuarioAutenticadoProvider;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +37,7 @@ public class RefeicaoService {
     private final CalculadoraCustoService calculadora;
     private final ConversorUnidadeService conversor;
     private final UsuarioAutenticadoProvider usuarioAutenticado;
+    private final AuditoriaDeAcesso auditoria;
 
     public RefeicaoService(
             RefeicaoRepository refeicaoRepository,
@@ -45,7 +46,8 @@ public class RefeicaoService {
             UsuarioRepository usuarioRepository,
             CalculadoraCustoService calculadora,
             ConversorUnidadeService conversor,
-            UsuarioAutenticadoProvider usuarioAutenticado) {
+            UsuarioAutenticadoProvider usuarioAutenticado,
+            AuditoriaDeAcesso auditoria) {
         this.refeicaoRepository = refeicaoRepository;
         this.itemMercadoRepository = itemMercadoRepository;
         this.registroDiarioRepository = registroDiarioRepository;
@@ -53,6 +55,7 @@ public class RefeicaoService {
         this.calculadora = calculadora;
         this.conversor = conversor;
         this.usuarioAutenticado = usuarioAutenticado;
+        this.auditoria = auditoria;
     }
 
     @Transactional
@@ -116,9 +119,12 @@ public class RefeicaoService {
     public void excluir(Long id) {
         Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
 
-        if (!refeicaoRepository.existsByIdAndUsuarioId(id, usuarioId)) {
-            throw new RecursoNaoEncontradoException("Refeição");
-        }
+        auditoria.exigirDoUsuario(
+                refeicaoRepository.existsByIdAndUsuarioId(id, usuarioId),
+                "Refeição",
+                id,
+                usuarioId,
+                () -> refeicaoRepository.existeDeOutroUsuario(id, usuarioId));
 
         // A ordem importa. Desvinculando primeiro, o contexto de persistencia e limpo e nenhum
         // RegistroDiario fica na memoria apontando para a refeicao que vai ser apagada. Por isso
@@ -141,11 +147,16 @@ public class RefeicaoService {
         for (ItemRefeicaoRequest linha : linhas) {
             // Filtro por usuario. Sem isso, mandando o id de um item de outra pessoa daria para
             // montar uma refeicao com o preco de outra conta.
+            Long itemMercadoId = linha.itemMercadoId();
             ItemMercado item =
-                    itemMercadoRepository
-                            .findByIdAndUsuarioId(linha.itemMercadoId(), usuarioId)
-                            .orElseThrow(
-                                    () -> new RecursoNaoEncontradoException("Item de mercado"));
+                    auditoria.exigirDoUsuario(
+                            itemMercadoRepository.findByIdAndUsuarioId(itemMercadoId, usuarioId),
+                            "Item de mercado",
+                            itemMercadoId,
+                            usuarioId,
+                            () ->
+                                    itemMercadoRepository.existeDeOutroUsuario(
+                                            itemMercadoId, usuarioId));
 
             if (!item.isAtivo() && !idsTolerados.contains(item.getId())) {
                 throw new ItemMercadoInativoException(item.getNome());
@@ -159,10 +170,20 @@ public class RefeicaoService {
         }
     }
 
+    /**
+     * Ponto unico de leitura escopada por usuario. Quando nao acha, a auditoria e quem decide se
+     * aquilo foi um id inexistente ou uma tentativa de ler refeicao de outra conta. A resposta e 404
+     * nos dois casos, a diferenca fica so no log.
+     */
     private Refeicao buscarDoUsuario(Long id) {
-        return refeicaoRepository
-                .findByIdAndUsuarioId(id, usuarioAutenticado.idDoUsuarioAutenticado())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Refeição"));
+        Long usuarioId = usuarioAutenticado.idDoUsuarioAutenticado();
+
+        return auditoria.exigirDoUsuario(
+                refeicaoRepository.findByIdAndUsuarioId(id, usuarioId),
+                "Refeição",
+                id,
+                usuarioId,
+                () -> refeicaoRepository.existeDeOutroUsuario(id, usuarioId));
     }
 
     private RefeicaoResponse montarResposta(Refeicao refeicao) {
